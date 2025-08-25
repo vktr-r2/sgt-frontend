@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 
 function Login() {
@@ -27,7 +27,8 @@ function Login() {
   return (
     <div className="auth-container">
       <div className="auth-form">
-        <h2>Login to SGT</h2>
+        <h2>Login to Spreadsheet Golf Tour</h2>
+        <p>Enter your credentials to access the tournament</p>
         
         {error && <div className="error-message">{error}</div>}
         
@@ -41,6 +42,7 @@ function Login() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
+              placeholder="your.email@example.com"
             />
           </div>
           
@@ -60,10 +62,6 @@ function Login() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        
-        <p>
-          Don't have an account? <Link to="/register">Register here</Link>
-        </p>
       </div>
     </div>
   );
