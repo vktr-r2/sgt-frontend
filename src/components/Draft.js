@@ -32,6 +32,22 @@ function Draft() {
     setSelectedGolfers(newPicks);
   };
 
+  const getAvailableGolfers = (currentPriority) => {
+    if (!data?.golfers) return [];
+    
+    const selectedGolferIds = selectedGolfers
+      .map((golfer, index) => {
+        // Don't exclude the current slot's selection
+        if (index === currentPriority - 1) return null;
+        return golfer?.id;
+      })
+      .filter(id => id !== null);
+    
+    return data.golfers.filter(golfer => 
+      !selectedGolferIds.includes(golfer.id)
+    );
+  };
+
   const handleSubmit = () => {
     const picks = selectedGolfers
       .filter(golfer => golfer)
@@ -83,7 +99,7 @@ function Draft() {
                     }}
                   >
                     <option value="">Select a golfer</option>
-                    {data.golfers?.map(golfer => (
+                    {getAvailableGolfers(priority).map(golfer => (
                       <option key={golfer.id} value={golfer.id}>
                         {golfer.full_name}
                       </option>
