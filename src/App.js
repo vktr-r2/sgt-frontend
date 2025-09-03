@@ -42,6 +42,14 @@ function App() {
                   </PrivateRoute>
                 } 
               />
+              <Route 
+                path="/admin" 
+                element={
+                  <PrivateRoute>
+                    <Admin />
+                  </PrivateRoute>
+                } 
+              />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>
