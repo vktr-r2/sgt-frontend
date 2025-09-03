@@ -30,9 +30,19 @@ function Dashboard() {
             <p>Current Tournament: <strong>{data.current_tournament.name}</strong></p>
           )}
         </div>
-        <button onClick={handleLogout} className="logout-btn">
-          Logout
-        </button>
+        <div className="header-actions">
+          {user?.admin && (
+            <button 
+              onClick={() => navigate('/admin')} 
+              className="admin-btn"
+            >
+              Admin
+            </button>
+          )}
+          <button onClick={handleLogout} className="logout-btn">
+            Logout
+          </button>
+        </div>
       </div>
       
       <div className="dashboard-content">
