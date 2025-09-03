@@ -13,16 +13,11 @@ function Admin() {
   const [formData, setFormData] = useState({});
   const [showForm, setShowForm] = useState(false);
 
-  // Redirect if not admin
-  if (!user?.admin) {
-    navigate('/');
-    return null;
-  }
-
+  // All hooks must be called before any early returns
   const { data: tableData, isLoading, error, refetch } = useQuery({
     queryKey: ['adminTable', selectedTable],
     queryFn: () => adminService.getTableData(selectedTable),
-    enabled: !!selectedTable
+    enabled: !!selectedTable && !!user?.admin
   });
 
   const createMutation = useMutation({
@@ -49,6 +44,12 @@ function Admin() {
       queryClient.invalidateQueries(['adminTable', selectedTable]);
     }
   });
+
+  // Redirect if not admin (after hooks)
+  if (!user?.admin) {
+    navigate('/');
+    return null;
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
