@@ -5,6 +5,7 @@ import { authService } from './services/auth';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Draft from './components/Draft';
+import Admin from './components/Admin';
 import './App.css';
 
 const queryClient = new QueryClient();
