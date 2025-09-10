@@ -15,6 +15,11 @@ function Draft() {
     queryFn: tournamentService.getDraftData
   });
 
+  const { data: tournamentData } = useQuery({
+    queryKey: ['tournamentData'],
+    queryFn: tournamentService.getAppInfo
+  });
+
   const submitPicksMutation = useMutation({
     mutationFn: tournamentService.submitPicks,
     onSuccess: (response) => {
@@ -66,6 +71,32 @@ function Draft() {
     navigate('/login');
   };
 
+  const formatDraftWindow = () => {
+    const tournament = tournamentData?.current_tournament;
+    if (!tournament?.draft_window?.start || !tournament?.draft_window?.end) {
+      return 'Draft window information not available';
+    }
+    
+    const startDate = new Date(tournament.draft_window.start);
+    const endDate = new Date(tournament.draft_window.end);
+    
+    const formatDate = (date) => {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    };
+    
+    const startFormatted = formatDate(startDate);
+    const endFormatted = formatDate(endDate);
+    
+    return `${startFormatted} - ${endFormatted}`;
+  };
+
   if (isLoading) return <div className="loading">Loading draft data...</div>;
   if (error) return <div className="error">Error loading draft data</div>;
 
@@ -83,7 +114,7 @@ function Draft() {
         return (
           <div className="draft-pick">
             <h3>Make Your Picks</h3>
-            <p>Select 8 golfers for this tournament (Tuesday/Wednesday only)</p>
+            <p>Select 8 golfers for this tournament ({formatDraftWindow()})</p>
             
             {message && <div className={`message ${message.includes('success') ? 'success' : 'error'}`}>{message}</div>}
             
