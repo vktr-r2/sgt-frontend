@@ -13,6 +13,11 @@ function Dashboard() {
     queryFn: tournamentService.getAppInfo
   });
 
+  const { data: draftData } = useQuery({
+    queryKey: ['draftData'],
+    queryFn: tournamentService.getDraftData
+  });
+
   const handleLogout = async () => {
     await authService.logout();
     navigate('/login');
@@ -63,7 +68,7 @@ function Dashboard() {
                 onClick={() => navigate('/draft')} 
                 className="primary-btn"
               >
-                View Draft Picks
+                {draftData?.picks && draftData.picks.length > 0 ? 'Edit/View Draft Picks' : 'View Draft Picks'}
               </button>
             </div>
           </div>
