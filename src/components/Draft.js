@@ -50,6 +50,10 @@ function Draft() {
     onSuccess: (response) => {
       setMessage(response.message || 'Picks submitted successfully!');
       queryClient.invalidateQueries(['draftData']);
+      // Redirect to dashboard after successful submission
+      setTimeout(() => {
+        navigate('/');
+      }, 1500); // Give user time to see the success message
     },
     onError: (error) => {
       setMessage(error.response?.data?.error || 'Failed to submit picks');
