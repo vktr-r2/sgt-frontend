@@ -240,7 +240,14 @@ function Draft() {
         );
       
       default:
-        return <div>Unknown draft mode</div>;
+        return (
+          <div>
+            <h3>Draft Status Unknown</h3>
+            <p>Received mode: "{data?.mode}" (type: {typeof data?.mode})</p>
+            <p>Debug info: {JSON.stringify({ mode: data?.mode, hasGolfers: !!data?.golfers?.length, hasPicks: !!data?.picks?.length })}</p>
+            <button onClick={() => window.location.reload()}>Refresh Page</button>
+          </div>
+        );
     }
   };
 
