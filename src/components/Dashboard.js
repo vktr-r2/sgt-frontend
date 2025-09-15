@@ -68,7 +68,7 @@ function Dashboard() {
                 onClick={() => navigate('/draft')} 
                 className="primary-btn"
               >
-                {draftData?.picks && draftData.picks.length > 0 ? 'Edit/View Draft Picks' : 'View Draft Picks'}
+                {draftData?.picks && draftData.picks.length > 0 ? 'Update Your Golfers' : 'Draft Your Golfers'}
               </button>
             </div>
           </div>
