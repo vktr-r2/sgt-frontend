@@ -8,12 +8,37 @@ function Draft() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedGolfers, setSelectedGolfers] = useState([]);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [message, setMessage] = useState('');
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['draftData'],
     queryFn: tournamentService.getDraftData
   });
+
+  // Pre-populate selectedGolfers when in edit mode
+  React.useEffect(() => {
+    if (data && (data.mode === 'edit' || data.mode === 'pick') && initialLoad) {
+      if (data.mode === 'edit' && data.picks && data.picks.length > 0) {
+        // Sort picks by priority and map to golfers
+        const sortedPicks = [...data.picks].sort((a, b) => a.priority - b.priority);
+        const preSelectedGolfers = sortedPicks.map(pick => {
+          return data.golfers.find(golfer => golfer.id === pick.golfer_id);
+        }).filter(Boolean);
+        
+        // Fill array to length 8, with undefined for missing slots
+        const initialSelections = Array(8).fill(null);
+        preSelectedGolfers.forEach((golfer, index) => {
+          if (index < 8) {
+            initialSelections[index] = golfer;
+          }
+        });
+        
+        setSelectedGolfers(initialSelections);
+      }
+      setInitialLoad(false);
+    }
+  }, [data, initialLoad]);
 
   const { data: tournamentData } = useQuery({
     queryKey: ['tournamentData'],
@@ -146,6 +171,46 @@ function Draft() {
               className="submit-btn"
             >
               {submitPicksMutation.isPending ? 'Submitting...' : 'Submit Picks'}
+            </button>
+          </div>
+        );
+
+      case 'edit':
+        return (
+          <div className="draft-edit">
+            <h3>Edit Your Picks</h3>
+            <p>You can modify your picks for this tournament ({formatDraftWindow()})</p>
+            
+            {message && <div className={`message ${message.includes('success') ? 'success' : 'error'}`}>{message}</div>}
+            
+            <div className="golfer-selection">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(priority => (
+                <div key={priority} className="pick-slot">
+                  <label>Pick #{priority}:</label>
+                  <select 
+                    value={selectedGolfers[priority - 1]?.id || ''}
+                    onChange={(e) => {
+                      const golfer = data.golfers.find(g => g.id === parseInt(e.target.value));
+                      handleGolferSelect(golfer, priority);
+                    }}
+                  >
+                    <option value="">Select a golfer</option>
+                    {getAvailableGolfers(priority).map(golfer => (
+                      <option key={golfer.id} value={golfer.id}>
+                        {golfer.full_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+            
+            <button 
+              onClick={handleSubmit}
+              disabled={submitPicksMutation.isPending || selectedGolfers.filter(g => g).length !== 8}
+              className="submit-btn"
+            >
+              {submitPicksMutation.isPending ? 'Updating...' : 'Update Picks'}
             </button>
           </div>
         );
