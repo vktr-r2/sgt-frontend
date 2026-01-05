@@ -29,31 +29,7 @@ main {
   padding: 20px;
 }
 
-/* Forms */
-.auth-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-}
-
-.auth-form h2 {
-  margin-bottom: 10px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-}
+/* Note: Login component now uses Tailwind CSS */
 
 button {
   background-color: #007bff;
@@ -72,24 +48,7 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Messages */
-.error-message {
-  color: red;
-  margin-bottom: 15px;
-}
-
-.message {
-  padding: 10px;
-  margin: 10px 0;
-}
-
-.message.success {
-  color: green;
-}
-
-.message.error {
-  color: red;
-}
+/* Note: Messages now styled with Tailwind CSS */
 
 /* Dashboard */
 .dashboard-header {
@@ -130,44 +89,7 @@ button:disabled {
   background-color: #218838;
 }
 
-/* Draft */
-.draft-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.pick-slot {
-  margin-bottom: 15px;
-}
-
-.pick-slot label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-.pick-slot select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-}
-
-.picks-list {
-  margin-top: 20px;
-}
-
-.pick-item {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  gap: 15px;
-}
-
-.priority {
-  font-weight: bold;
-  min-width: 30px;
-}
+/* Note: Draft component now uses Tailwind CSS */
 
 /* Admin Dashboard */
 .admin-dashboard {
@@ -307,14 +229,4 @@ button:disabled {
   background-color: #c82333;
 }
 
-/* Utilities */
-.loading {
-  text-align: center;
-  padding: 50px;
-}
-
-.error {
-  color: red;
-  text-align: center;
-  padding: 20px;
-}
+/* Note: Utility classes now handled by Tailwind CSS */
