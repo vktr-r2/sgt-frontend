@@ -30,6 +30,11 @@ const wrapper = ({ children }) => {
 describe('CurrentTournament', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Set up default mocks to prevent undefined returns
+    tournamentService.getAppInfo.mockResolvedValue({ current_tournament: null });
+    tournamentService.getCurrentScores.mockResolvedValue({ success: true, data: { tournament: {}, leaderboard: [] } });
+    tournamentService.getSeasonStandings.mockResolvedValue({ success: true, data: { season_year: 2026, standings: [] } });
   });
 
   describe('Rendering States', () => {
