@@ -19,6 +19,10 @@ const CurrentTournament = () => {
     return new Date() > new Date(tournament.draft_window.end);
   };
 
+  // Determine if we should fetch scores or standings based on appInfo
+  const shouldFetchScores = appInfo && appInfo.current_tournament && isDraftClosed(appInfo.current_tournament);
+  const shouldFetchStandings = appInfo && !appInfo.current_tournament;
+
   // Get current scores (only after draft closes)
   const {
     data: scores,
@@ -28,7 +32,7 @@ const CurrentTournament = () => {
   } = useQuery({
     queryKey: ['currentScores'],
     queryFn: tournamentService.getCurrentScores,
-    enabled: !!appInfo?.current_tournament && isDraftClosed(appInfo.current_tournament),
+    enabled: shouldFetchScores,
     staleTime: 5 * 60 * 1000 // 5 minutes
   });
 
@@ -40,16 +44,34 @@ const CurrentTournament = () => {
   } = useQuery({
     queryKey: ['seasonStandings', currentYear],
     queryFn: () => tournamentService.getSeasonStandings(currentYear),
-    enabled: !appInfo?.current_tournament,
+    enabled: shouldFetchStandings,
     staleTime: 30 * 60 * 1000 // 30 minutes
   });
 
   // Determine display mode
   const getDisplayMode = () => {
-    if (isLoadingAppInfo || isLoadingScores || isLoadingStandings) return 'loading';
-    if (appInfoError || scoresError || standingsError) return 'error';
-    if (!appInfo?.current_tournament) return 'off-season';
-    if (!isDraftClosed(appInfo.current_tournament)) return 'draft-in-progress';
+    // Always show loading if appInfo is loading
+    if (isLoadingAppInfo) return 'loading';
+
+    // Show error if appInfo failed
+    if (appInfoError) return 'error';
+
+    // Now we have appInfo, determine what to show
+    if (!appInfo?.current_tournament) {
+      // Off-season: check if standings are loading or errored
+      if (isLoadingStandings) return 'loading';
+      if (standingsError) return 'error';
+      return 'off-season';
+    }
+
+    // There's a tournament
+    if (!isDraftClosed(appInfo.current_tournament)) {
+      return 'draft-in-progress';
+    }
+
+    // Draft is closed, should show scores
+    if (isLoadingScores) return 'loading';
+    if (scoresError) return 'error';
     return 'active-tournament';
   };
 

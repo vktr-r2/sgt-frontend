@@ -636,7 +636,6 @@ describe('CurrentTournament', () => {
     it('should navigate to draft page when button is clicked', async () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
 
-      const user = userEvent.setup();
       render(<CurrentTournament />, { wrapper });
 
       await waitFor(() => {
@@ -644,7 +643,7 @@ describe('CurrentTournament', () => {
       });
 
       const draftButton = screen.getByRole('button', { name: /Go to Draft/i });
-      await user.click(draftButton);
+      await userEvent.click(draftButton);
 
       // Navigation will be handled by react-router-dom in the actual component
       expect(draftButton).toBeInTheDocument();
@@ -760,7 +759,6 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getCurrentScores.mockRejectedValue(new Error('Network error'));
 
-      const user = userEvent.setup();
       render(<CurrentTournament />, { wrapper });
 
       await waitFor(() => {
@@ -778,7 +776,7 @@ describe('CurrentTournament', () => {
         }
       });
 
-      await user.click(retryButton);
+      await userEvent.click(retryButton);
 
       jest.spyOn(Date, 'now').mockRestore();
     });
