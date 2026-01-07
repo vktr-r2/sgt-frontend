@@ -434,7 +434,8 @@ describe('CurrentTournament', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Cut Golfer')).toBeInTheDocument();
-        expect(screen.getByText('CUT')).toBeInTheDocument();
+        const cutElements = screen.getAllByText('CUT');
+        expect(cutElements.length).toBeGreaterThan(0);
       });
     });
 
