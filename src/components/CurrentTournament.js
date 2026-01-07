@@ -20,8 +20,8 @@ const CurrentTournament = () => {
   };
 
   // Determine if we should fetch scores or standings based on appInfo
-  const shouldFetchScores = appInfo && appInfo.current_tournament && isDraftClosed(appInfo.current_tournament);
-  const shouldFetchStandings = appInfo && !appInfo.current_tournament;
+  const shouldFetchScores = Boolean(appInfo && appInfo.current_tournament && isDraftClosed(appInfo.current_tournament));
+  const shouldFetchStandings = Boolean(appInfo && !appInfo.current_tournament);
 
   // Get current scores (only after draft closes)
   const {
