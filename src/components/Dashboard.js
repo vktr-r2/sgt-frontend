@@ -1,83 +1,49 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { tournamentService } from '../services/tournament';
 import { authService } from '../services/auth';
+import CurrentTournament from './CurrentTournament';
 
 function Dashboard() {
   const navigate = useNavigate();
   const user = authService.getCurrentUser();
-  
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['appInfo'],
-    queryFn: tournamentService.getAppInfo
-  });
-
-  const { data: draftData } = useQuery({
-    queryKey: ['draftData'],
-    queryFn: tournamentService.getDraftData
-  });
 
   const handleLogout = async () => {
     await authService.logout();
     navigate('/login');
   };
 
-  if (isLoading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">Error loading dashboard</div>;
-
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <div>
-          <h2>Welcome, {user?.name}!</h2>
-          {data?.current_tournament && (
-            <p>Current Tournament: <strong>{data.current_tournament.name}</strong></p>
-          )}
-        </div>
-        <div className="header-actions">
-          {user?.admin && (
-            <button 
-              onClick={() => navigate('/admin')} 
-              className="admin-btn"
+    <div className="min-h-screen bg-clubhouse-cream">
+      {/* Header bar (match Draft.js) */}
+      <div className="bg-white shadow-country-club sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <h2 className="font-display text-3xl text-clubhouse-mahogany">
+            Welcome, {user?.name}!
+          </h2>
+          <div className="flex items-center gap-3">
+            {user?.admin && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="bg-clubhouse-brown hover:bg-clubhouse-mahogany text-white
+                           font-sans font-medium px-6 py-2 rounded-lg transition-all"
+              >
+                Admin
+              </button>
+            )}
+            <button
+              onClick={handleLogout}
+              className="bg-clubhouse-brown hover:bg-clubhouse-mahogany text-white
+                         font-sans font-medium px-6 py-2 rounded-lg transition-all"
             >
-              Admin
+              Logout
             </button>
-          )}
-          <button onClick={handleLogout} className="logout-btn">
-            Logout
-          </button>
+          </div>
         </div>
       </div>
-      
-      <div className="dashboard-content">
-        {data?.current_tournament ? (
-          <div className="tournament-info">
-            <h3>Tournament Details</h3>
-            <div className="tournament-card">
-              <p><strong>Name:</strong> {data.current_tournament.name}</p>
-              <p><strong>Week:</strong> {data.current_tournament.week_number}</p>
-              <p><strong>Year:</strong> {data.current_tournament.year}</p>
-              <p><strong>Format:</strong> {data.current_tournament.format}</p>
-              <p><strong>Start Date:</strong> {new Date(data.current_tournament.start_date).toLocaleDateString()}</p>
-              <p><strong>End Date:</strong> {new Date(data.current_tournament.end_date).toLocaleDateString()}</p>
-            </div>
-            
-            <div className="actions">
-              <button 
-                onClick={() => navigate('/draft')} 
-                className="primary-btn"
-              >
-                {draftData?.picks && draftData.picks.length > 0 ? 'Update Your Golfers' : 'Draft Your Golfers'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="no-tournament">
-            <h3>No Active Tournament</h3>
-            <p>There is no active tournament at this time. Check back soon!</p>
-          </div>
-        )}
+
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <CurrentTournament />
       </div>
     </div>
   );
