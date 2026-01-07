@@ -16,7 +16,7 @@ const CurrentTournament = () => {
   // Helper function to check if draft is closed
   const isDraftClosed = (tournament) => {
     if (!tournament?.draft_window?.end) return true;
-    return new Date() > new Date(tournament.draft_window.end);
+    return Date.now() > new Date(tournament.draft_window.end).getTime();
   };
 
   // Determine if we should fetch scores or standings based on appInfo
