@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 import CurrentTournament from './CurrentTournament';
+import CurrentSeason from './CurrentSeason';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -42,8 +43,9 @@ function Dashboard() {
       </div>
 
       {/* Main content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         <CurrentTournament />
+        <CurrentSeason />
       </div>
     </div>
   );
