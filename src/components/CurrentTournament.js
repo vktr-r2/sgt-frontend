@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { tournamentService } from '../services/tournament';
@@ -114,44 +114,7 @@ const CurrentTournament = () => {
 
   // Draft in progress state
   if (displayMode === 'draft-in-progress') {
-    const draftWindow = appInfo.current_tournament.draft_window;
-    const formatDraftDeadline = (endDate) => {
-      return new Date(endDate).toLocaleString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZone: 'America/New_York'
-      });
-    };
-
-    return (
-      <div className="bg-white rounded-xl shadow-country-club p-8 text-center max-w-2xl mx-auto animate-fade-in">
-        <div className="w-20 h-20 bg-augusta-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-10 h-10 text-augusta-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <h3 className="font-display text-3xl text-clubhouse-mahogany mb-3">
-          Draft In Progress
-        </h3>
-        <p className="font-sans text-clubhouse-brown mb-2">
-          The draft window is currently open. Make your picks before it closes!
-        </p>
-        <p className="font-sans text-sm text-clubhouse-brown mb-6">
-          Draft closes: {formatDraftDeadline(draftWindow.end)}
-        </p>
-        <button
-          onClick={() => navigate('/draft')}
-          className="bg-augusta-green-600 hover:bg-augusta-green-700
-                     text-white font-sans font-bold py-3 px-8 rounded-lg
-                     transition-all duration-200 shadow-md hover:shadow-lg"
-        >
-          Go to Draft
-        </button>
-      </div>
-    );
+    return <DraftInProgress appInfo={appInfo} navigate={navigate} />;
   }
 
   // Off-season state
@@ -311,6 +274,84 @@ const GolferCards = ({ golfers }) => {
           </div>
         </div>
       ))}
+    </div>
+  );
+};
+
+// Draft in progress component with countdown timer
+const DraftInProgress = ({ appInfo, navigate }) => {
+  const draftWindow = appInfo.current_tournament.draft_window;
+  const [timeRemaining, setTimeRemaining] = useState('');
+
+  useEffect(() => {
+    const endTime = new Date(draftWindow.end).getTime();
+
+    const updateCountdown = () => {
+      const now = Date.now();
+      const diff = endTime - now;
+
+      if (diff <= 0) {
+        setTimeRemaining('Draft window closed');
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const parts = [];
+      if (days > 0) parts.push(`${days}d`);
+      parts.push(`${hours}h`);
+      parts.push(`${minutes}m`);
+      parts.push(`${seconds}s`);
+
+      setTimeRemaining(parts.join(' '));
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [draftWindow.end]);
+
+  const formatDraftDeadline = (endDate) => {
+    return new Date(endDate).toLocaleString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'America/New_York'
+    });
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-country-club p-8 text-center max-w-2xl mx-auto animate-fade-in">
+      <div className="w-20 h-20 bg-augusta-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg className="w-10 h-10 text-augusta-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h3 className="font-display text-3xl text-clubhouse-mahogany mb-3">
+        Draft In Progress
+      </h3>
+      <p className="font-sans text-clubhouse-brown mb-2">
+        The draft window is currently open. Make your picks before it closes!
+      </p>
+      <p className="font-sans text-sm text-clubhouse-brown mb-2">
+        Draft closes: {formatDraftDeadline(draftWindow.end)}
+      </p>
+      <p className="font-display text-2xl text-augusta-green-600 mb-6">
+        {timeRemaining}
+      </p>
+      <button
+        onClick={() => navigate('/draft')}
+        className="bg-augusta-green-600 hover:bg-augusta-green-700
+                   text-white font-sans font-bold py-3 px-8 rounded-lg
+                   transition-all duration-200 shadow-md hover:shadow-lg"
+      >
+        Go to Draft
+      </button>
     </div>
   );
 };
