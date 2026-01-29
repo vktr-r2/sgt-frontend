@@ -135,12 +135,37 @@ const ActiveTournament = ({ scores }) => {
   if (!scores?.data) return null;
 
   const { tournament, leaderboard } = scores.data;
-  const userLeaderboard = leaderboard[0]; // Assuming first entry is current user
+
+  // Get current user from localStorage to find their entry
+  const getCurrentUserId = () => {
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        return user.user_id;
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+    return null;
+  };
+
+  const currentUserId = getCurrentUserId();
+  const userLeaderboard = leaderboard.find(entry => entry.user_id === currentUserId) || leaderboard[0];
 
   return (
-    <div>
+    <div className="space-y-6">
       <TournamentHeader tournament={tournament} userPosition={userLeaderboard?.current_position} />
-      <GolferCards golfers={userLeaderboard?.golfers || []} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* User's golfer cards - takes 2 columns on large screens */}
+        <div className="lg:col-span-2">
+          <GolferCards golfers={userLeaderboard?.golfers || []} />
+        </div>
+        {/* Tournament leaderboard - takes 1 column on large screens */}
+        <div className="lg:col-span-1">
+          <TournamentLeaderboard leaderboard={leaderboard} currentUserId={currentUserId} />
+        </div>
+      </div>
     </div>
   );
 };
@@ -274,6 +299,148 @@ const GolferCards = ({ golfers }) => {
           </div>
         </div>
       ))}
+    </div>
+  );
+};
+
+// Tournament Leaderboard component - shows all users' standings
+const TournamentLeaderboard = ({ leaderboard, currentUserId }) => {
+  const PAR_PER_ROUND = 72;
+
+  // Convert raw score to par-relative string (E, -2, +3, etc.)
+  const formatScoreToPar = (rawScore) => {
+    if (rawScore === null || rawScore === undefined) return '--';
+    const relativeScore = rawScore - PAR_PER_ROUND;
+    if (relativeScore === 0) return 'E';
+    return relativeScore > 0 ? `+${relativeScore}` : `${relativeScore}`;
+  };
+
+  // Calculate total score relative to par for a user
+  const calculateTotalToPar = (golfers) => {
+    const totalStrokes = golfers.reduce((sum, g) => {
+      const golferTotal = g.rounds.reduce((rSum, r) => rSum + (r.score || 0), 0);
+      return sum + golferTotal;
+    }, 0);
+    const totalPar = golfers.length * 4 * PAR_PER_ROUND; // 4 rounds per golfer
+    const roundsPlayed = golfers.reduce((sum, g) => sum + g.rounds.length, 0);
+    const actualPar = roundsPlayed * PAR_PER_ROUND;
+    const relativeToPar = totalStrokes - actualPar;
+    if (roundsPlayed === 0) return '--';
+    if (relativeToPar === 0) return 'E';
+    return relativeToPar > 0 ? `+${relativeToPar}` : `${relativeToPar}`;
+  };
+
+  // Get status indicator for golfer (cut, wd, etc.)
+  const getStatusIndicator = (status) => {
+    if (status === 'cut') return { icon: '✂️', color: 'bg-sand-light' };
+    if (status === 'wd') return { icon: '🚫', color: 'bg-red-100' };
+    return null;
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-country-club overflow-hidden animate-fade-in">
+      <div className="bg-augusta-green-600 px-4 py-3">
+        <h3 className="font-display text-lg text-white">Tournament Standings</h3>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-clubhouse-beige border-b border-clubhouse-brown">
+            <tr>
+              <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany w-8"></th>
+              <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany">Player</th>
+              <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany">Golfer</th>
+              <th className="px-1 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-8">R1</th>
+              <th className="px-1 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-8">R2</th>
+              <th className="px-1 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-8">R3</th>
+              <th className="px-1 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-8">R4</th>
+              <th className="px-2 py-2 text-right font-sans font-semibold text-clubhouse-mahogany w-12">Tot</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leaderboard.map((user, userIndex) => {
+              const golfers = user.golfers || [];
+              const isCurrentUser = user.user_id === currentUserId;
+              const rowCount = Math.max(golfers.length, 1);
+
+              return golfers.map((golfer, golferIndex) => {
+                const statusIndicator = getStatusIndicator(golfer.status);
+                const isFirstGolfer = golferIndex === 0;
+                const isLastGolfer = golferIndex === golfers.length - 1;
+
+                return (
+                  <tr
+                    key={`${user.user_id}-${golfer.golfer_id}`}
+                    className={`border-b border-clubhouse-beige
+                               ${isCurrentUser ? 'bg-augusta-green-50' : 'hover:bg-clubhouse-cream'}
+                               ${statusIndicator ? statusIndicator.color : ''}
+                               transition-colors duration-150`}
+                  >
+                    {/* Rank - only on first golfer row */}
+                    {isFirstGolfer && (
+                      <td
+                        rowSpan={rowCount}
+                        className={`px-2 py-2 font-sans font-bold text-clubhouse-mahogany text-center align-middle
+                                   ${isCurrentUser ? 'border-l-4 border-augusta-green-600' : ''}`}
+                      >
+                        {user.current_position}
+                      </td>
+                    )}
+
+                    {/* User name - only on first golfer row */}
+                    {isFirstGolfer && (
+                      <td
+                        rowSpan={rowCount}
+                        className="px-2 py-2 font-sans font-semibold text-clubhouse-mahogany align-middle"
+                      >
+                        {user.username}
+                      </td>
+                    )}
+
+                    {/* Golfer name */}
+                    <td className="px-2 py-1.5 font-sans text-clubhouse-brown">
+                      <div className="flex items-center gap-1">
+                        <span className="truncate max-w-[100px]">{golfer.name}</span>
+                        {statusIndicator && <span className="text-xs">{statusIndicator.icon}</span>}
+                      </div>
+                    </td>
+
+                    {/* Round scores */}
+                    {[1, 2, 3, 4].map(roundNum => {
+                      const round = golfer.rounds.find(r => r.round === roundNum);
+                      const scoreStr = round ? formatScoreToPar(round.score) : '--';
+                      const isUnderPar = round && (round.score - PAR_PER_ROUND) < 0;
+                      const isOverPar = round && (round.score - PAR_PER_ROUND) > 0;
+
+                      return (
+                        <td
+                          key={roundNum}
+                          className={`px-1 py-1.5 text-center font-sans text-xs
+                                     ${isUnderPar ? 'text-augusta-green-600 font-semibold' : ''}
+                                     ${isOverPar ? 'text-error-red' : ''}
+                                     ${!isUnderPar && !isOverPar && round ? 'text-clubhouse-brown' : 'text-gray-300'}`}
+                        >
+                          {scoreStr}
+                        </td>
+                      );
+                    })}
+
+                    {/* Total - only on first golfer row */}
+                    {isFirstGolfer && (
+                      <td
+                        rowSpan={rowCount}
+                        className="px-2 py-2 text-right font-sans font-bold text-augusta-green-600 align-middle"
+                      >
+                        {calculateTotalToPar(golfers)}
+                      </td>
+                    )}
+                  </tr>
+                );
+              });
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

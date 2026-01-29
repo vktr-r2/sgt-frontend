@@ -245,7 +245,9 @@ describe('CurrentTournament', () => {
 
       await waitFor(() => {
         golfers.forEach(golfer => {
-          expect(screen.getByText(golfer.name)).toBeInTheDocument();
+          // Golfer names appear in both GolferCards and TournamentLeaderboard
+          const elements = screen.getAllByText(golfer.name);
+          expect(elements.length).toBeGreaterThan(0);
         });
       });
     });
@@ -433,7 +435,9 @@ describe('CurrentTournament', () => {
       render(<CurrentTournament />, { wrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Cut Golfer')).toBeInTheDocument();
+        // Golfer name appears in both GolferCards and TournamentLeaderboard
+        const golferElements = screen.getAllByText('Cut Golfer');
+        expect(golferElements.length).toBeGreaterThan(0);
         const cutElements = screen.getAllByText('CUT');
         expect(cutElements.length).toBeGreaterThan(0);
       });
