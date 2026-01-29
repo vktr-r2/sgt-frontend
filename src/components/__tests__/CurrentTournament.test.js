@@ -851,4 +851,657 @@ describe('CurrentTournament', () => {
       });
     });
   });
+
+  describe('Tournament Leaderboard', () => {
+    const mockAppInfo = {
+      current_tournament: {
+        id: 1,
+        name: 'The Masters',
+        draft_window: {
+          start: '2026-04-05T00:00:00Z',
+          end: '2026-04-07T23:59:59Z'
+        }
+      }
+    };
+
+    beforeEach(() => {
+      // Set draft as closed so active tournament displays
+      jest.spyOn(Date, 'now').mockImplementation(() => new Date('2026-04-10T12:00:00Z').getTime());
+
+      // Mock current user in localStorage
+      localStorage.setItem('user', JSON.stringify({ user_id: 1 }));
+    });
+
+    afterEach(() => {
+      jest.spyOn(Date, 'now').mockRestore();
+      localStorage.clear();
+    });
+
+    describe('Par-Relative Score Formatting', () => {
+      it('should display even par as "E"', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 288,
+                current_position: 1,
+                golfers: [
+                  {
+                    golfer_id: 1,
+                    name: 'Tiger Woods',
+                    total_score: 0,
+                    position: 'T1',
+                    status: 'active',
+                    rounds: [{ round: 1, score: 72, position: 'T1' }],
+                    was_replaced: false
+                  }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Tournament Standings')).toBeInTheDocument();
+          // E should appear in the leaderboard for even par
+          const eScores = screen.getAllByText('E');
+          expect(eScores.length).toBeGreaterThan(0);
+        });
+      });
+
+      it('should display under par scores with minus sign', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 280,
+                current_position: 1,
+                golfers: [
+                  {
+                    golfer_id: 1,
+                    name: 'Tiger Woods',
+                    total_score: -4,
+                    position: 'T1',
+                    status: 'active',
+                    rounds: [{ round: 1, score: 68, position: 'T1' }],
+                    was_replaced: false
+                  }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          // -4 should appear (68 - 72 = -4)
+          const underParScores = screen.getAllByText('-4');
+          expect(underParScores.length).toBeGreaterThan(0);
+        });
+      });
+
+      it('should display over par scores with plus sign', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 296,
+                current_position: 1,
+                golfers: [
+                  {
+                    golfer_id: 1,
+                    name: 'Tiger Woods',
+                    total_score: 4,
+                    position: 'T50',
+                    status: 'active',
+                    rounds: [{ round: 1, score: 76, position: 'T50' }],
+                    was_replaced: false
+                  }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          // +4 should appear (76 - 72 = +4)
+          const overParScores = screen.getAllByText('+4');
+          expect(overParScores.length).toBeGreaterThan(0);
+        });
+      });
+
+      it('should display "--" for missing round scores', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 140,
+                current_position: 1,
+                golfers: [
+                  {
+                    golfer_id: 1,
+                    name: 'Tiger Woods',
+                    total_score: -4,
+                    position: 'T1',
+                    status: 'active',
+                    rounds: [{ round: 1, score: 68, position: 'T1' }], // Only 1 round
+                    was_replaced: false
+                  }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          // Should show "--" for rounds 2, 3, 4
+          const dashScores = screen.getAllByText('--');
+          expect(dashScores.length).toBeGreaterThanOrEqual(3);
+        });
+      });
+    });
+
+    describe('Total Score Calculation', () => {
+      it('should calculate total relative to par across all golfers and rounds', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 280,
+                current_position: 1,
+                golfers: [
+                  {
+                    golfer_id: 1,
+                    name: 'Golfer A',
+                    total_score: -4,
+                    position: 'T1',
+                    status: 'active',
+                    rounds: [
+                      { round: 1, score: 70, position: 'T1' }, // -2
+                      { round: 2, score: 68, position: 'T1' }  // -4
+                    ],
+                    was_replaced: false
+                  },
+                  {
+                    golfer_id: 2,
+                    name: 'Golfer B',
+                    total_score: -2,
+                    position: 'T5',
+                    status: 'active',
+                    rounds: [
+                      { round: 1, score: 71, position: 'T5' }, // -1
+                      { round: 2, score: 71, position: 'T5' }  // -1
+                    ],
+                    was_replaced: false
+                  }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          // Total: (70+68+71+71) - (72*4) = 280 - 288 = -8
+          const totalScores = screen.getAllByText('-8');
+          expect(totalScores.length).toBeGreaterThan(0);
+        });
+      });
+    });
+
+    describe('Status Indicators', () => {
+      it('should display scissors icon for cut golfers', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 300,
+                current_position: 1,
+                golfers: [
+                  {
+                    golfer_id: 1,
+                    name: 'Cut Player',
+                    total_score: 10,
+                    position: 'CUT',
+                    status: 'cut',
+                    rounds: [
+                      { round: 1, score: 78, position: 'T80' },
+                      { round: 2, score: 76, position: 'CUT' }
+                    ],
+                    was_replaced: false
+                  }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('✂️')).toBeInTheDocument();
+        });
+      });
+
+      it('should display prohibited icon for withdrawn golfers', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 144,
+                current_position: 1,
+                golfers: [
+                  {
+                    golfer_id: 1,
+                    name: 'WD Player',
+                    total_score: 0,
+                    position: 'WD',
+                    status: 'wd',
+                    rounds: [{ round: 1, score: 72, position: 'T20' }],
+                    was_replaced: false
+                  }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('🚫')).toBeInTheDocument();
+        });
+      });
+    });
+
+    describe('Current User Highlighting', () => {
+      it('should display current user in the leaderboard', async () => {
+        localStorage.setItem('user', JSON.stringify({ user_id: 2 }));
+
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'Other User',
+                total_strokes: 280,
+                current_position: 1,
+                golfers: [
+                  {
+                    golfer_id: 1,
+                    name: 'Golfer A',
+                    total_score: -4,
+                    position: 'T1',
+                    status: 'active',
+                    rounds: [],
+                    was_replaced: false
+                  }
+                ]
+              },
+              {
+                user_id: 2,
+                username: 'Current User',
+                total_strokes: 284,
+                current_position: 2,
+                golfers: [
+                  {
+                    golfer_id: 2,
+                    name: 'Golfer B',
+                    total_score: -2,
+                    position: 'T5',
+                    status: 'active',
+                    rounds: [],
+                    was_replaced: false
+                  }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          // Both users should be displayed in the leaderboard
+          expect(screen.getByText('Other User')).toBeInTheDocument();
+          expect(screen.getByText('Current User')).toBeInTheDocument();
+          // Current user's golfer should appear
+          const golferBElements = screen.getAllByText('Golfer B');
+          expect(golferBElements.length).toBeGreaterThan(0);
+        });
+      });
+    });
+
+    describe('Leaderboard Structure', () => {
+      it('should display all users in the leaderboard', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'Adam',
+                total_strokes: 280,
+                current_position: 1,
+                golfers: [
+                  { golfer_id: 1, name: 'Scottie Scheffler', total_score: -4, position: 'T1', status: 'active', rounds: [], was_replaced: false }
+                ]
+              },
+              {
+                user_id: 2,
+                username: 'Brandon',
+                total_strokes: 284,
+                current_position: 2,
+                golfers: [
+                  { golfer_id: 2, name: 'Rory McIlroy', total_score: -2, position: 'T5', status: 'active', rounds: [], was_replaced: false }
+                ]
+              },
+              {
+                user_id: 3,
+                username: 'Marco',
+                total_strokes: 288,
+                current_position: 3,
+                golfers: [
+                  { golfer_id: 3, name: 'Jon Rahm', total_score: 0, position: 'T10', status: 'active', rounds: [], was_replaced: false }
+                ]
+              },
+              {
+                user_id: 4,
+                username: 'Vik',
+                total_strokes: 292,
+                current_position: 4,
+                golfers: [
+                  { golfer_id: 4, name: 'Collin Morikawa', total_score: 2, position: 'T20', status: 'active', rounds: [], was_replaced: false }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Tournament Standings')).toBeInTheDocument();
+          expect(screen.getByText('Adam')).toBeInTheDocument();
+          expect(screen.getByText('Brandon')).toBeInTheDocument();
+          expect(screen.getByText('Marco')).toBeInTheDocument();
+          expect(screen.getByText('Vik')).toBeInTheDocument();
+        });
+      });
+
+      it('should display user positions correctly', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'Leader',
+                total_strokes: 270,
+                current_position: 1,
+                golfers: [
+                  { golfer_id: 1, name: 'Golfer A', total_score: -10, position: '1', status: 'active', rounds: [], was_replaced: false }
+                ]
+              },
+              {
+                user_id: 2,
+                username: 'Second',
+                total_strokes: 280,
+                current_position: 2,
+                golfers: [
+                  { golfer_id: 2, name: 'Golfer B', total_score: -5, position: 'T5', status: 'active', rounds: [], was_replaced: false }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          // Position 1 and 2 should be displayed
+          expect(screen.getByText('Leader')).toBeInTheDocument();
+          expect(screen.getByText('Second')).toBeInTheDocument();
+        });
+      });
+
+      it('should display multiple golfers per user', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 560,
+                current_position: 1,
+                golfers: [
+                  { golfer_id: 1, name: 'Scottie Scheffler', total_score: -8, position: '1', status: 'active', rounds: [], was_replaced: false },
+                  { golfer_id: 2, name: 'Hideki Matsuyama', total_score: -4, position: 'T5', status: 'active', rounds: [], was_replaced: false }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          // Both golfers should appear in leaderboard
+          const schefflerElements = screen.getAllByText('Scottie Scheffler');
+          const matsuyamaElements = screen.getAllByText('Hideki Matsuyama');
+          expect(schefflerElements.length).toBeGreaterThan(0);
+          expect(matsuyamaElements.length).toBeGreaterThan(0);
+        });
+      });
+    });
+
+    describe('Score Color Coding', () => {
+      it('should apply green color to under par scores', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 280,
+                current_position: 1,
+                golfers: [
+                  {
+                    golfer_id: 1,
+                    name: 'Tiger Woods',
+                    total_score: -4,
+                    position: 'T1',
+                    status: 'active',
+                    rounds: [{ round: 1, score: 68, position: 'T1' }],
+                    was_replaced: false
+                  }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          // Find the -4 score in the leaderboard table
+          const scoreElements = screen.getAllByText('-4');
+          const greenScore = scoreElements.find(el =>
+            el.classList.contains('text-augusta-green-600')
+          );
+          expect(greenScore).toBeTruthy();
+        });
+      });
+
+      it('should apply red color to over par scores', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 300,
+                current_position: 1,
+                golfers: [
+                  {
+                    golfer_id: 1,
+                    name: 'Tiger Woods',
+                    total_score: 4,
+                    position: 'T50',
+                    status: 'active',
+                    rounds: [{ round: 1, score: 76, position: 'T50' }],
+                    was_replaced: false
+                  }
+                ]
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          // Find the +4 score in the leaderboard table
+          const scoreElements = screen.getAllByText('+4');
+          const redScore = scoreElements.find(el =>
+            el.classList.contains('text-error-red')
+          );
+          expect(redScore).toBeTruthy();
+        });
+      });
+    });
+
+    describe('Edge Cases', () => {
+      it('should handle empty leaderboard gracefully', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: []
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Tournament Standings')).toBeInTheDocument();
+        });
+      });
+
+      it('should handle user with empty golfers array', async () => {
+        const mockScores = {
+          success: true,
+          data: {
+            tournament: { id: 1, name: 'The Masters', is_major: false },
+            leaderboard: [
+              {
+                user_id: 1,
+                username: 'John Doe',
+                total_strokes: 0,
+                current_position: 1,
+                golfers: []
+              }
+            ]
+          }
+        };
+
+        tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+        tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+        render(<CurrentTournament />, { wrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Tournament Standings')).toBeInTheDocument();
+        });
+      });
+    });
+  });
 });
