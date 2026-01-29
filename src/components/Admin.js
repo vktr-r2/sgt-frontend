@@ -9,12 +9,12 @@ function Admin() {
   const queryClient = useQueryClient();
   const user = authService.getCurrentUser();
   const [selectedTable, setSelectedTable] = useState('users');
-  const [editingRecord, setEditingRecord] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [isCreating, setIsCreating] = useState(false);
+  const [newRecordData, setNewRecordData] = useState({});
 
-  // All hooks must be called before any early returns
-  const { data: tableData, isLoading, error, refetch } = useQuery({
+  const { data: tableData, isLoading, error } = useQuery({
     queryKey: ['adminTable', selectedTable],
     queryFn: () => adminService.getTableData(selectedTable),
     enabled: !!selectedTable && !!user?.admin
@@ -24,8 +24,8 @@ function Admin() {
     mutationFn: (data) => adminService.createRecord(selectedTable, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['adminTable', selectedTable]);
-      setShowForm(false);
-      setFormData({});
+      setIsCreating(false);
+      setNewRecordData({});
     }
   });
 
@@ -33,8 +33,8 @@ function Admin() {
     mutationFn: ({ id, data }) => adminService.updateRecord(selectedTable, id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['adminTable', selectedTable]);
-      setEditingRecord(null);
-      setFormData({});
+      setEditingId(null);
+      setEditData({});
     }
   });
 
@@ -45,25 +45,127 @@ function Admin() {
     }
   });
 
-  // Redirect if not admin (after hooks)
   if (!user?.admin) {
     navigate('/');
     return null;
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (editingRecord) {
-      updateMutation.mutate({ id: editingRecord.id, data: formData });
-    } else {
-      createMutation.mutate(formData);
+  // Map of foreign key columns to their lookup keys
+  const foreignKeyMap = {
+    user_id: 'users',
+    golfer_id: 'golfers',
+    tournament_id: 'tournaments',
+    match_pick_id: 'match_picks'
+  };
+
+  // Get display value for a cell (shows name instead of ID for foreign keys)
+  const getDisplayValue = (record, column) => {
+    const value = record[column.name];
+    if (value === null || value === undefined) return '-';
+
+    const lookupKey = foreignKeyMap[column.name];
+    if (lookupKey && tableData?.lookups?.[lookupKey]) {
+      const lookup = tableData.lookups[lookupKey].find(item => item.id === value);
+      return lookup ? lookup.name : value;
     }
+
+    if (column.type === 'boolean') return value ? 'Yes' : 'No';
+    if (column.type === 'datetime' && value) {
+      return new Date(value).toLocaleString();
+    }
+    return value.toString();
+  };
+
+  // Check if column is editable
+  const isEditableColumn = (columnName) => {
+    return !['id', 'created_at', 'updated_at'].includes(columnName);
+  };
+
+  // Render input field for editing
+  const renderEditInput = (column, value, onChange) => {
+    const lookupKey = foreignKeyMap[column.name];
+
+    // Foreign key - render dropdown
+    if (lookupKey && tableData?.lookups?.[lookupKey]) {
+      return (
+        <select
+          value={value || ''}
+          onChange={(e) => onChange(column.name, parseInt(e.target.value) || null)}
+          className="inline-input"
+        >
+          <option value="">Select...</option>
+          {tableData.lookups[lookupKey].map(item => (
+            <option key={item.id} value={item.id}>{item.name}</option>
+          ))}
+        </select>
+      );
+    }
+
+    // Boolean
+    if (column.type === 'boolean') {
+      return (
+        <select
+          value={value?.toString() || 'false'}
+          onChange={(e) => onChange(column.name, e.target.value === 'true')}
+          className="inline-input"
+        >
+          <option value="false">No</option>
+          <option value="true">Yes</option>
+        </select>
+      );
+    }
+
+    // Integer
+    if (column.type === 'integer') {
+      return (
+        <input
+          type="number"
+          value={value ?? ''}
+          onChange={(e) => onChange(column.name, e.target.value ? parseInt(e.target.value) : null)}
+          className="inline-input"
+        />
+      );
+    }
+
+    // Datetime
+    if (column.type === 'datetime') {
+      return (
+        <input
+          type="datetime-local"
+          value={value ? new Date(value).toISOString().slice(0, 16) : ''}
+          onChange={(e) => onChange(column.name, e.target.value)}
+          className="inline-input"
+        />
+      );
+    }
+
+    // Default text
+    return (
+      <input
+        type="text"
+        value={value ?? ''}
+        onChange={(e) => onChange(column.name, e.target.value)}
+        className="inline-input"
+      />
+    );
   };
 
   const handleEdit = (record) => {
-    setEditingRecord(record);
-    setFormData({ ...record });
-    setShowForm(true);
+    setEditingId(record.id);
+    setEditData({ ...record });
+  };
+
+  const handleSave = () => {
+    const dataToSave = { ...editData };
+    delete dataToSave.id;
+    delete dataToSave.created_at;
+    delete dataToSave.updated_at;
+    updateMutation.mutate({ id: editingId, data: dataToSave });
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditData({});
   };
 
   const handleDelete = (id) => {
@@ -72,80 +174,18 @@ function Admin() {
     }
   };
 
-  const handleInputChange = (column, value) => {
-    setFormData(prev => ({ ...prev, [column]: value }));
+  const handleCreateNew = () => {
+    setIsCreating(true);
+    setNewRecordData({});
   };
 
-  const resetForm = () => {
-    setEditingRecord(null);
-    setFormData({});
-    setShowForm(false);
+  const handleSaveNew = () => {
+    createMutation.mutate(newRecordData);
   };
 
-  const renderFormField = (column) => {
-    if (['id', 'created_at', 'updated_at'].includes(column.name)) {
-      return null;
-    }
-
-    const value = formData[column.name] || '';
-
-    switch (column.type) {
-      case 'boolean':
-        return (
-          <label key={column.name} className="form-field">
-            <span>{column.name}:</span>
-            <select
-              value={value.toString()}
-              onChange={(e) => handleInputChange(column.name, e.target.value === 'true')}
-            >
-              <option value="false">False</option>
-              <option value="true">True</option>
-            </select>
-          </label>
-        );
-      case 'integer':
-        return (
-          <label key={column.name} className="form-field">
-            <span>{column.name}:</span>
-            <input
-              type="number"
-              value={value}
-              onChange={(e) => handleInputChange(column.name, parseInt(e.target.value) || 0)}
-            />
-          </label>
-        );
-      case 'datetime':
-        return (
-          <label key={column.name} className="form-field">
-            <span>{column.name}:</span>
-            <input
-              type="datetime-local"
-              value={value ? new Date(value).toISOString().slice(0, 16) : ''}
-              onChange={(e) => handleInputChange(column.name, e.target.value)}
-            />
-          </label>
-        );
-      default:
-        return (
-          <label key={column.name} className="form-field">
-            <span>{column.name}:</span>
-            <input
-              type="text"
-              value={value}
-              onChange={(e) => handleInputChange(column.name, e.target.value)}
-            />
-          </label>
-        );
-    }
-  };
-
-  const formatCellValue = (value, column) => {
-    if (value === null || value === undefined) return 'null';
-    if (column.type === 'boolean') return value.toString();
-    if (column.type === 'datetime' && value) {
-      return new Date(value).toLocaleString();
-    }
-    return value.toString();
+  const handleCancelNew = () => {
+    setIsCreating(false);
+    setNewRecordData({});
   };
 
   if (isLoading) return <div className="loading">Loading admin data...</div>;
@@ -171,7 +211,8 @@ function Admin() {
               value={selectedTable}
               onChange={(e) => {
                 setSelectedTable(e.target.value);
-                resetForm();
+                setEditingId(null);
+                setIsCreating(false);
               }}
             >
               <option value="users">Users</option>
@@ -184,35 +225,10 @@ function Admin() {
           </label>
         </div>
 
-        <button
-          onClick={() => {
-            resetForm();
-            setShowForm(true);
-          }}
-          className="add-btn"
-        >
+        <button onClick={handleCreateNew} className="add-btn" disabled={isCreating}>
           Add New Record
         </button>
       </div>
-
-      {showForm && (
-        <div className="record-form">
-          <h3>{editingRecord ? 'Edit Record' : 'Add New Record'}</h3>
-          <form onSubmit={handleSubmit}>
-            <div className="form-fields">
-              {tableData?.columns?.map(column => renderFormField(column))}
-            </div>
-            <div className="form-actions">
-              <button type="submit" disabled={createMutation.isLoading || updateMutation.isLoading}>
-                {editingRecord ? 'Update' : 'Create'}
-              </button>
-              <button type="button" onClick={resetForm}>
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       <div className="table-container">
         {tableData?.data && (
@@ -226,27 +242,73 @@ function Admin() {
               </tr>
             </thead>
             <tbody>
-              {tableData.data.map((record) => (
-                <tr key={record.id}>
+              {/* New record row */}
+              {isCreating && (
+                <tr className="editing-row new-row">
                   {tableData.columns.map(column => (
                     <td key={column.name}>
-                      {formatCellValue(record[column.name], column)}
+                      {isEditableColumn(column.name) ? (
+                        renderEditInput(
+                          column,
+                          newRecordData[column.name],
+                          (name, value) => setNewRecordData(prev => ({ ...prev, [name]: value }))
+                        )
+                      ) : (
+                        '-'
+                      )}
                     </td>
                   ))}
                   <td className="actions">
-                    <button 
-                      onClick={() => handleEdit(record)}
-                      className="edit-btn"
-                    >
-                      Edit
+                    <button onClick={handleSaveNew} className="save-btn" disabled={createMutation.isLoading}>
+                      Save
                     </button>
-                    <button 
-                      onClick={() => handleDelete(record.id)}
-                      className="delete-btn"
-                      disabled={deleteMutation.isLoading}
-                    >
-                      Delete
+                    <button onClick={handleCancelNew} className="cancel-btn">
+                      Cancel
                     </button>
+                  </td>
+                </tr>
+              )}
+
+              {/* Existing records */}
+              {tableData.data.map((record) => (
+                <tr key={record.id} className={editingId === record.id ? 'editing-row' : ''}>
+                  {tableData.columns.map(column => (
+                    <td key={column.name}>
+                      {editingId === record.id && isEditableColumn(column.name) ? (
+                        renderEditInput(
+                          column,
+                          editData[column.name],
+                          (name, value) => setEditData(prev => ({ ...prev, [name]: value }))
+                        )
+                      ) : (
+                        getDisplayValue(record, column)
+                      )}
+                    </td>
+                  ))}
+                  <td className="actions">
+                    {editingId === record.id ? (
+                      <>
+                        <button onClick={handleSave} className="save-btn" disabled={updateMutation.isLoading}>
+                          Save
+                        </button>
+                        <button onClick={handleCancel} className="cancel-btn">
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => handleEdit(record)} className="edit-btn">
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(record.id)}
+                          className="delete-btn"
+                          disabled={deleteMutation.isLoading}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}

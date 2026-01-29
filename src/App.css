@@ -229,4 +229,50 @@ button:disabled {
   background-color: #c82333;
 }
 
+.save-btn {
+  background-color: #28a745;
+  color: white;
+  margin-right: 5px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.save-btn:hover {
+  background-color: #218838;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.cancel-btn:hover {
+  background-color: #5a6268;
+}
+
+.editing-row {
+  background-color: #fff3cd !important;
+}
+
+.editing-row.new-row {
+  background-color: #d4edda !important;
+}
+
+.inline-input {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 13px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.inline-input:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
 /* Note: Utility classes now handled by Tailwind CSS */
