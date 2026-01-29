@@ -130,7 +130,7 @@ const CurrentTournament = () => {
   return null;
 };
 
-// Active Tournament component (placeholder)
+// Active Tournament component
 const ActiveTournament = ({ scores }) => {
   if (!scores?.data) return null;
 
@@ -156,13 +156,9 @@ const ActiveTournament = ({ scores }) => {
   return (
     <div className="space-y-6">
       <TournamentHeader tournament={tournament} userPosition={userLeaderboard?.current_position} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* User's golfer cards - takes 2 columns on large screens */}
-        <div className="lg:col-span-2">
-          <GolferCards golfers={userLeaderboard?.golfers || []} />
-        </div>
-        {/* Tournament leaderboard - takes 1 column on large screens */}
-        <div className="lg:col-span-1">
+      {/* Tournament leaderboard - centered at 60% width */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-4xl" style={{ width: '60%', minWidth: '320px' }}>
           <TournamentLeaderboard leaderboard={leaderboard} currentUserId={currentUserId} />
         </div>
       </div>
@@ -208,97 +204,6 @@ const TournamentHeader = ({ tournament, userPosition }) => {
           </div>
         )}
       </div>
-    </div>
-  );
-};
-
-// Golfer Cards component (placeholder)
-const GolferCards = ({ golfers }) => {
-  const getStatusBorderColor = (status) => {
-    switch (status) {
-      case 'active': return 'border-augusta-green-600';
-      case 'complete': return 'border-trophy-gold';
-      case 'cut': return 'border-sand-dark';
-      case 'wd': return 'border-error-red';
-      default: return 'border-clubhouse-beige';
-    }
-  };
-
-  const getStatusBadgeStyle = (status) => {
-    switch (status) {
-      case 'active': return 'bg-augusta-green-100 text-augusta-green-700';
-      case 'complete': return 'bg-trophy-gold text-white';
-      case 'cut': return 'bg-sand-light text-sand-dark';
-      case 'wd': return 'bg-red-100 text-error-red';
-      default: return 'bg-clubhouse-beige text-clubhouse-brown';
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'active': return 'In Progress';
-      case 'complete': return 'Complete';
-      case 'cut': return 'CUT';
-      case 'wd': return 'WD';
-      default: return 'Unknown';
-    }
-  };
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {golfers.map((golfer, index) => (
-        <div
-          key={golfer.golfer_id}
-          className={`bg-white rounded-xl shadow-country-club p-5
-                      hover:shadow-elevated transition-all duration-200
-                      border-l-4 ${getStatusBorderColor(golfer.status)}
-                      animate-stagger-${Math.min(index + 1, 8)}`}
-        >
-          {/* Golfer name and total score */}
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-grow">
-              <h3 className="font-sans font-bold text-lg text-clubhouse-mahogany">
-                {golfer.name}
-              </h3>
-              {golfer.was_replaced && (
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="font-sans text-xs text-sand-dark">Replacement</span>
-                </div>
-              )}
-            </div>
-            <div className="text-right">
-              <div className="font-sans font-bold text-2xl text-augusta-green-600">
-                {golfer.total_score > 0 ? '+' : ''}{golfer.total_score}
-              </div>
-              <div className="font-sans text-sm text-clubhouse-brown">
-                {golfer.position}
-              </div>
-            </div>
-          </div>
-
-          {/* Status badge */}
-          <div className={`inline-flex px-3 py-1 rounded-full text-xs font-sans font-medium mb-3
-                            ${getStatusBadgeStyle(golfer.status)}`}>
-            {getStatusLabel(golfer.status)}
-          </div>
-
-          {/* Round scores grid */}
-          <div className="grid grid-cols-4 gap-2">
-            {[1, 2, 3, 4].map(roundNum => {
-              const round = golfer.rounds.find(r => r.round === roundNum);
-              return (
-                <div key={roundNum} className="text-center">
-                  <div className="font-sans text-xs text-clubhouse-brown mb-1">R{roundNum}</div>
-                  <div className={`font-sans font-semibold text-sm
-                                  ${round ? 'text-clubhouse-mahogany' : 'text-gray-300'}`}>
-                    {round ? round.score : '--'}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
     </div>
   );
 };
