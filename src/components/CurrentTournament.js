@@ -252,14 +252,14 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId }) => {
         <table className="w-full text-sm">
           <thead className="bg-clubhouse-beige border-b border-clubhouse-brown">
             <tr>
-              <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany w-8"></th>
-              <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany">Player</th>
+              <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany w-10"></th>
+              <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany w-24">Player</th>
               <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany">Golfer</th>
-              <th className="px-1 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-8">R1</th>
-              <th className="px-1 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-8">R2</th>
-              <th className="px-1 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-8">R3</th>
-              <th className="px-1 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-8">R4</th>
-              <th className="px-2 py-2 text-right font-sans font-semibold text-clubhouse-mahogany w-12">Tot</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R1</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R2</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R3</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R4</th>
+              <th className="px-3 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-16">Tot</th>
             </tr>
           </thead>
           <tbody>
@@ -305,7 +305,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId }) => {
                     {/* Golfer name */}
                     <td className="px-2 py-1.5 font-sans text-clubhouse-brown">
                       <div className="flex items-center gap-1">
-                        <span className="truncate max-w-[100px]">{golfer.name}</span>
+                        <span>{golfer.name}</span>
                         {statusIndicator && <span className="text-xs">{statusIndicator.icon}</span>}
                       </div>
                     </td>
@@ -320,7 +320,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId }) => {
                       return (
                         <td
                           key={roundNum}
-                          className={`px-1 py-1.5 text-center font-sans text-xs
+                          className={`px-2 py-1.5 text-center font-sans text-sm
                                      ${isUnderPar ? 'text-augusta-green-600 font-semibold' : ''}
                                      ${isOverPar ? 'text-error-red' : ''}
                                      ${!isUnderPar && !isOverPar && round ? 'text-clubhouse-brown' : 'text-gray-300'}`}
@@ -334,7 +334,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId }) => {
                     {isFirstGolfer && (
                       <td
                         rowSpan={rowCount}
-                        className="px-2 py-2 text-right font-sans font-bold text-augusta-green-600 align-middle"
+                        className="px-3 py-2 text-center font-sans font-bold text-augusta-green-600 align-middle"
                       >
                         {calculateTotalToPar(golfers)}
                       </td>
