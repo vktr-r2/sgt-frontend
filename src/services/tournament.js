@@ -24,5 +24,10 @@ export const tournamentService = {
   getSeasonStandings: async (year) => {
     const response = await api.get(`/api/standings/season?year=${year}`);
     return response.data;
+  },
+
+  getFullLeaderboard: async () => {
+    const response = await api.get('/api/tournaments/current/full_leaderboard');
+    return response.data;
   }
 };

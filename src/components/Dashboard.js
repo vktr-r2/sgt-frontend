@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 import CurrentTournament from './CurrentTournament';
+import FullLeaderboard from './FullLeaderboard';
 import CurrentSeason from './CurrentSeason';
 
 function Dashboard() {
@@ -45,6 +46,7 @@ function Dashboard() {
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         <CurrentTournament />
+        <FullLeaderboard />
         <CurrentSeason />
       </div>
     </div>
