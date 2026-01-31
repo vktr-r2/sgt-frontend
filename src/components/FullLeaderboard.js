@@ -52,30 +52,51 @@ const FullLeaderboard = () => {
     return null;
   }
 
-  const { tournament, current_round, cut_line, players } = leaderboardData;
+  const { tournament, current_round, cut_line, fetched_at, players } = leaderboardData;
 
   // Find the index where cut players start (for separator)
   const cutLineIndex = cut_line ? players.findIndex(p =>
     p.status === 'cut' || p.position?.toString().toUpperCase() === 'CUT'
   ) : -1;
 
+  // Format timestamp to EST
+  const formatTimestamp = (isoString) => {
+    if (!isoString) return null;
+    const date = new Date(isoString);
+    return date.toLocaleString('en-US', {
+      timeZone: 'America/New_York',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }) + ' EST';
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-country-club overflow-hidden animate-fade-in">
       {/* Header */}
-      <div className="bg-augusta-green-600 px-4 py-3 flex justify-between items-center">
-        <h3 className="font-display text-lg text-white">
-          Tournament Leaderboard
-        </h3>
-        <div className="flex items-center gap-4 text-white text-sm font-sans">
-          {current_round && (
-            <span>Round {current_round}</span>
-          )}
-          {cut_line && (
-            <span className="bg-white/20 px-2 py-1 rounded">
-              Cut: {cut_line.score} ({cut_line.count} players)
-            </span>
-          )}
+      <div className="bg-augusta-green-600 px-4 py-3">
+        <div className="flex justify-between items-center">
+          <h3 className="font-display text-lg text-white">
+            Tournament Leaderboard
+          </h3>
+          <div className="flex items-center gap-4 text-white text-sm font-sans">
+            {current_round && (
+              <span>Round {current_round}</span>
+            )}
+            {cut_line && (
+              <span className="bg-white/20 px-2 py-1 rounded">
+                Cut: {cut_line.score} ({cut_line.count} players)
+              </span>
+            )}
+          </div>
         </div>
+        {fetched_at && (
+          <p className="text-white/70 text-xs font-sans mt-1">
+            Accurate as of {formatTimestamp(fetched_at)}
+          </p>
+        )}
       </div>
 
       {/* Scrollable Table Container */}
