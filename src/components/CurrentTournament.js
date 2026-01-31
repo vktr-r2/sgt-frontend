@@ -159,7 +159,7 @@ const ActiveTournament = ({ scores }) => {
       {/* Tournament leaderboard - centered at 60% width */}
       <div className="flex justify-center">
         <div className="w-full max-w-4xl" style={{ width: '60%', minWidth: '320px' }}>
-          <TournamentLeaderboard leaderboard={leaderboard} currentUserId={currentUserId} />
+          <TournamentLeaderboard leaderboard={leaderboard} currentUserId={currentUserId} tournament={tournament} />
         </div>
       </div>
     </div>
@@ -209,7 +209,7 @@ const TournamentHeader = ({ tournament, userPosition }) => {
 };
 
 // Tournament Leaderboard component - shows all users' standings
-const TournamentLeaderboard = ({ leaderboard, currentUserId }) => {
+const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
   const PAR_PER_ROUND = 72;
 
   // Convert raw score to par-relative string (E, -2, +3, etc.)
@@ -244,8 +244,10 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-country-club overflow-hidden animate-fade-in">
-      <div className="bg-augusta-green-600 px-4 py-3">
-        <h3 className="font-display text-lg text-white">Tournament Standings</h3>
+      <div className="bg-augusta-green-600 px-4 py-3 text-left">
+        <h3 className="font-display text-lg text-white">
+          <span className="font-bold">Current Tournament:</span> {tournament?.name}
+        </h3>
       </div>
 
       <div className="overflow-x-auto">
@@ -323,7 +325,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId }) => {
                           className={`px-2 py-1.5 text-center font-sans text-sm
                                      ${isUnderPar ? 'text-augusta-green-600 font-semibold' : ''}
                                      ${isOverPar ? 'text-error-red' : ''}
-                                     ${!isUnderPar && !isOverPar && round ? 'text-clubhouse-brown' : 'text-gray-300'}`}
+                                     ${!isUnderPar && !isOverPar && round ? 'text-clubhouse-brown' : 'text-clubhouse-brown'}`}
                         >
                           {scoreStr}
                         </td>
