@@ -220,6 +220,38 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
     return relativeScore > 0 ? `+${relativeScore}` : `${relativeScore}`;
   };
 
+  // Format position with ordinal suffix (1st, 2nd, 3rd, T5th, etc.)
+  const formatPositionOrdinal = (position) => {
+    if (!position) return '';
+    const posStr = position.toString().toUpperCase();
+
+    // Handle special cases
+    if (posStr === 'CUT' || posStr === 'WD' || posStr === 'DQ') return '';
+
+    // Extract numeric part and check for tie prefix
+    const isTied = posStr.startsWith('T');
+    const numPart = parseInt(posStr.replace(/[^0-9]/g, ''), 10);
+
+    if (isNaN(numPart)) return '';
+
+    // Get ordinal suffix
+    const getOrdinalSuffix = (n) => {
+      const s = ['th', 'st', 'nd', 'rd'];
+      const v = n % 100;
+      return s[(v - 20) % 10] || s[v] || s[0];
+    };
+
+    const suffix = getOrdinalSuffix(numPart);
+    return isTied ? `T${numPart}${suffix}` : `${numPart}${suffix}`;
+  };
+
+  // Calculate golfer's total strokes from rounds
+  const calculateGolferTotal = (golfer) => {
+    if (!golfer.rounds || golfer.rounds.length === 0) return '--';
+    const total = golfer.rounds.reduce((sum, r) => sum + (r.score || 0), 0);
+    return total > 0 ? total : '--';
+  };
+
   // Calculate total score relative to par for a user
   const calculateTotalToPar = (golfers) => {
     const totalStrokes = golfers.reduce((sum, g) => {
@@ -261,7 +293,8 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
               <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R2</th>
               <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R3</th>
               <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R4</th>
-              <th className="px-3 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-16">Tot</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-14">Tot</th>
+              <th className="px-3 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-16 border-l-2 border-clubhouse-brown">Team</th>
             </tr>
           </thead>
           <tbody>
@@ -304,10 +337,17 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                       </td>
                     )}
 
-                    {/* Golfer name */}
+                    {/* Golfer name with position */}
                     <td className="px-2 py-1.5 font-sans text-clubhouse-brown">
                       <div className="flex items-center gap-1">
-                        <span>{golfer.name}</span>
+                        <span>
+                          {golfer.name}
+                          {formatPositionOrdinal(golfer.position) && (
+                            <span className="text-clubhouse-brown/70 ml-1">
+                              ({formatPositionOrdinal(golfer.position)})
+                            </span>
+                          )}
+                        </span>
                         {statusIndicator && <span className="text-xs">{statusIndicator.icon}</span>}
                       </div>
                     </td>
@@ -332,11 +372,16 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                       );
                     })}
 
-                    {/* Total - only on first golfer row */}
+                    {/* Golfer total strokes */}
+                    <td className="px-2 py-1.5 text-center font-sans text-sm text-clubhouse-brown">
+                      {calculateGolferTotal(golfer)}
+                    </td>
+
+                    {/* User total - only on first golfer row */}
                     {isFirstGolfer && (
                       <td
                         rowSpan={rowCount}
-                        className="px-3 py-2 text-center font-sans font-bold text-augusta-green-600 align-middle"
+                        className="px-3 py-2 text-center font-sans font-bold text-augusta-green-600 align-middle border-l-2 border-clubhouse-brown"
                       >
                         {calculateTotalToPar(golfers)}
                       </td>
