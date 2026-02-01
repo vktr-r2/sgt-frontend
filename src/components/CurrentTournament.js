@@ -316,7 +316,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                 return (
                   <tr
                     key={`${user.user_id}-${golfer.golfer_id}`}
-                    className={`border-b border-clubhouse-beige
+                    className={`${isLastGolfer ? 'border-b-2 border-clubhouse-brown' : 'border-b border-clubhouse-beige'}
                                ${isCurrentUser && !statusIndicator ? 'bg-augusta-green-50' : ''}
                                ${!isCurrentUser && !statusIndicator ? 'hover:bg-clubhouse-cream' : ''}
                                transition-colors duration-150`}
@@ -391,7 +391,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                     {isFirstGolfer && (
                       <td
                         rowSpan={rowCount}
-                        className="px-3 py-2 text-center font-sans font-bold text-augusta-green-600 align-middle border-l-2 border-clubhouse-brown"
+                        className="px-3 py-2 text-center font-sans text-lg font-bold text-augusta-green-600 align-middle border-l-2 border-clubhouse-brown"
                       >
                         {calculateTotalToPar(golfers)}
                       </td>
