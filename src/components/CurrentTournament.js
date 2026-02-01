@@ -274,7 +274,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
 
   // Get status indicator for golfer (cut, wd, etc.)
   const getStatusIndicator = (status) => {
-    if (status === 'cut') return { icon: '✂️', color: 'bg-sand-light' };
+    if (status === 'cut') return { icon: '✂️', color: 'bg-red-50' };
     if (status === 'wd') return { icon: '🚫', color: 'bg-red-100' };
     return null;
   };
@@ -317,8 +317,8 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                   <tr
                     key={`${user.user_id}-${golfer.golfer_id}`}
                     className={`border-b border-clubhouse-beige
-                               ${isCurrentUser ? 'bg-augusta-green-50' : 'hover:bg-clubhouse-cream'}
-                               ${statusIndicator ? statusIndicator.color : ''}
+                               ${isCurrentUser && !statusIndicator ? 'bg-augusta-green-50' : ''}
+                               ${!isCurrentUser && !statusIndicator ? 'hover:bg-clubhouse-cream' : ''}
                                transition-colors duration-150`}
                   >
                     {/* Rank - only on first golfer row */}
@@ -343,7 +343,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                     )}
 
                     {/* Golfer name with position */}
-                    <td className="px-2 py-1.5 font-sans text-clubhouse-brown">
+                    <td className={`px-2 py-1.5 font-sans text-clubhouse-brown ${statusIndicator ? statusIndicator.color : ''}`}>
                       <div className="flex items-center gap-1">
                         <span>
                           {golfer.name}
@@ -368,6 +368,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                         <td
                           key={roundNum}
                           className={`px-2 py-1.5 text-center font-sans text-sm
+                                     ${statusIndicator ? statusIndicator.color : ''}
                                      ${isUnderPar ? 'text-augusta-green-600 font-semibold' : ''}
                                      ${isOverPar ? 'text-error-red' : ''}
                                      ${!isUnderPar && !isOverPar && round ? 'text-clubhouse-brown' : 'text-clubhouse-brown'}`}
@@ -379,6 +380,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
 
                     {/* Golfer total to par */}
                     <td className={`px-2 py-1.5 text-center font-sans text-sm
+                                   ${statusIndicator ? statusIndicator.color : ''}
                                    ${calculateGolferTotalToPar(golfer).startsWith('-') ? 'text-augusta-green-600 font-semibold' : ''}
                                    ${calculateGolferTotalToPar(golfer).startsWith('+') ? 'text-error-red' : ''}
                                    ${!calculateGolferTotalToPar(golfer).startsWith('-') && !calculateGolferTotalToPar(golfer).startsWith('+') ? 'text-clubhouse-brown' : ''}`}>
