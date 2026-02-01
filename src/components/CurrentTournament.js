@@ -274,8 +274,8 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
 
   // Get status indicator for golfer (cut, wd, etc.)
   const getStatusIndicator = (status) => {
-    if (status === 'cut') return { icon: '✂️', color: 'bg-red-50' };
-    if (status === 'wd') return { icon: '🚫', color: 'bg-red-100' };
+    if (status === 'cut') return { icon: '✂️', color: 'bg-red-100' };
+    if (status === 'wd') return { icon: '🚫', color: 'bg-red-200' };
     return null;
   };
 
