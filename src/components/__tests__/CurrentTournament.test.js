@@ -1300,4 +1300,227 @@ describe('CurrentTournament', () => {
       });
     });
   });
+
+  describe('Golfer Position and Total Display', () => {
+    const mockAppInfo = {
+      current_tournament: {
+        id: 1,
+        name: 'The Masters',
+        draft_window: {
+          start: '2026-04-05T00:00:00Z',
+          end: '2026-04-07T23:59:59Z'
+        }
+      }
+    };
+
+    beforeEach(() => {
+      jest.spyOn(Date, 'now').mockImplementation(() => new Date('2026-04-10T12:00:00Z').getTime());
+    });
+
+    afterEach(() => {
+      jest.spyOn(Date, 'now').mockRestore();
+    });
+
+    it('should display golfer position with ordinal suffix', async () => {
+      const mockScores = {
+        success: true,
+        data: {
+          tournament: { id: 1, name: 'The Masters', is_major: false },
+          leaderboard: [
+            {
+              user_id: 1,
+              username: 'John Doe',
+              total_strokes: 280,
+              current_position: 1,
+              golfers: [
+                {
+                  golfer_id: 1,
+                  name: 'Tiger Woods',
+                  total_score: 138,
+                  position: '1',
+                  status: 'active',
+                  rounds: [
+                    { round: 1, score: 68, position: '1' },
+                    { round: 2, score: 70, position: '1' }
+                  ],
+                  was_replaced: false
+                }
+              ]
+            }
+          ]
+        }
+      };
+
+      tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+      tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+      render(<CurrentTournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Tiger Woods/)).toBeInTheDocument();
+        expect(screen.getByText(/\(1st\)/)).toBeInTheDocument();
+      });
+    });
+
+    it('should display tied position with ordinal suffix', async () => {
+      const mockScores = {
+        success: true,
+        data: {
+          tournament: { id: 1, name: 'The Masters', is_major: false },
+          leaderboard: [
+            {
+              user_id: 1,
+              username: 'John Doe',
+              total_strokes: 280,
+              current_position: 1,
+              golfers: [
+                {
+                  golfer_id: 1,
+                  name: 'Rory McIlroy',
+                  total_score: 140,
+                  position: 'T5',
+                  status: 'active',
+                  rounds: [
+                    { round: 1, score: 70, position: 'T5' },
+                    { round: 2, score: 70, position: 'T5' }
+                  ],
+                  was_replaced: false
+                }
+              ]
+            }
+          ]
+        }
+      };
+
+      tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+      tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+      render(<CurrentTournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Rory McIlroy/)).toBeInTheDocument();
+        expect(screen.getByText(/\(T5th\)/)).toBeInTheDocument();
+      });
+    });
+
+    it('should not display position for CUT players', async () => {
+      const mockScores = {
+        success: true,
+        data: {
+          tournament: { id: 1, name: 'The Masters', is_major: false },
+          leaderboard: [
+            {
+              user_id: 1,
+              username: 'John Doe',
+              total_strokes: 300,
+              current_position: 1,
+              golfers: [
+                {
+                  golfer_id: 1,
+                  name: 'Phil Mickelson',
+                  total_score: 150,
+                  position: 'CUT',
+                  status: 'cut',
+                  rounds: [
+                    { round: 1, score: 76, position: 'T80' },
+                    { round: 2, score: 74, position: 'CUT' }
+                  ],
+                  was_replaced: false
+                }
+              ]
+            }
+          ]
+        }
+      };
+
+      tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+      tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+      render(<CurrentTournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Phil Mickelson/)).toBeInTheDocument();
+        // Should not have any ordinal position suffix for CUT
+        expect(screen.queryByText(/\(CUT\)/)).not.toBeInTheDocument();
+      });
+    });
+
+    it('should display golfer total strokes', async () => {
+      const mockScores = {
+        success: true,
+        data: {
+          tournament: { id: 1, name: 'The Masters', is_major: false },
+          leaderboard: [
+            {
+              user_id: 1,
+              username: 'John Doe',
+              total_strokes: 280,
+              current_position: 1,
+              golfers: [
+                {
+                  golfer_id: 1,
+                  name: 'Tiger Woods',
+                  total_score: 138,
+                  position: '1',
+                  status: 'active',
+                  rounds: [
+                    { round: 1, score: 68, position: '1' },
+                    { round: 2, score: 70, position: '1' }
+                  ],
+                  was_replaced: false
+                }
+              ]
+            }
+          ]
+        }
+      };
+
+      tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+      tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+      render(<CurrentTournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('138')).toBeInTheDocument();
+      });
+    });
+
+    it('should display Team column header', async () => {
+      const mockScores = {
+        success: true,
+        data: {
+          tournament: { id: 1, name: 'The Masters', is_major: false },
+          leaderboard: [
+            {
+              user_id: 1,
+              username: 'John Doe',
+              total_strokes: 280,
+              current_position: 1,
+              golfers: [
+                {
+                  golfer_id: 1,
+                  name: 'Tiger Woods',
+                  total_score: 138,
+                  position: '1',
+                  status: 'active',
+                  rounds: [],
+                  was_replaced: false
+                }
+              ]
+            }
+          ]
+        }
+      };
+
+      tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
+      tournamentService.getCurrentScores.mockResolvedValue(mockScores);
+
+      render(<CurrentTournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Team')).toBeInTheDocument();
+        expect(screen.getByText('Tot')).toBeInTheDocument();
+      });
+    });
+  });
 });
