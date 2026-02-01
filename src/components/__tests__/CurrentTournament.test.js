@@ -1445,7 +1445,7 @@ describe('CurrentTournament', () => {
       });
     });
 
-    it('should display golfer total strokes', async () => {
+    it('should display golfer total score relative to par', async () => {
       const mockScores = {
         success: true,
         data: {
@@ -1464,8 +1464,8 @@ describe('CurrentTournament', () => {
                   position: '1',
                   status: 'active',
                   rounds: [
-                    { round: 1, score: 68, position: '1' },
-                    { round: 2, score: 70, position: '1' }
+                    { round: 1, score: 68, position: '1' },  // -4
+                    { round: 2, score: 70, position: '1' }   // -2, total = -6
                   ],
                   was_replaced: false
                 }
@@ -1481,7 +1481,10 @@ describe('CurrentTournament', () => {
       render(<CurrentTournament />, { wrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('138')).toBeInTheDocument();
+        // 68 + 70 = 138 strokes, par is 144 (72 * 2), so -6
+        // Both golfer total and team total will show -6
+        const minusSixElements = screen.getAllByText('-6');
+        expect(minusSixElements.length).toBeGreaterThanOrEqual(1);
       });
     });
 

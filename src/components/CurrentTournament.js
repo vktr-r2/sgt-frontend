@@ -245,11 +245,16 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
     return isTied ? `T${numPart}${suffix}` : `${numPart}${suffix}`;
   };
 
-  // Calculate golfer's total strokes from rounds
-  const calculateGolferTotal = (golfer) => {
+  // Calculate golfer's total score relative to par
+  const calculateGolferTotalToPar = (golfer) => {
     if (!golfer.rounds || golfer.rounds.length === 0) return '--';
-    const total = golfer.rounds.reduce((sum, r) => sum + (r.score || 0), 0);
-    return total > 0 ? total : '--';
+    const totalStrokes = golfer.rounds.reduce((sum, r) => sum + (r.score || 0), 0);
+    if (totalStrokes === 0) return '--';
+    const roundsPlayed = golfer.rounds.filter(r => r.score).length;
+    const parForRounds = roundsPlayed * PAR_PER_ROUND;
+    const relativeToPar = totalStrokes - parForRounds;
+    if (relativeToPar === 0) return 'E';
+    return relativeToPar > 0 ? `+${relativeToPar}` : `${relativeToPar}`;
   };
 
   // Calculate total score relative to par for a user
@@ -372,9 +377,12 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                       );
                     })}
 
-                    {/* Golfer total strokes */}
-                    <td className="px-2 py-1.5 text-center font-sans text-sm text-clubhouse-brown">
-                      {calculateGolferTotal(golfer)}
+                    {/* Golfer total to par */}
+                    <td className={`px-2 py-1.5 text-center font-sans text-sm
+                                   ${calculateGolferTotalToPar(golfer).startsWith('-') ? 'text-augusta-green-600 font-semibold' : ''}
+                                   ${calculateGolferTotalToPar(golfer).startsWith('+') ? 'text-error-red' : ''}
+                                   ${!calculateGolferTotalToPar(golfer).startsWith('-') && !calculateGolferTotalToPar(golfer).startsWith('+') ? 'text-clubhouse-brown' : ''}`}>
+                      {calculateGolferTotalToPar(golfer)}
                     </td>
 
                     {/* User total - only on first golfer row */}
