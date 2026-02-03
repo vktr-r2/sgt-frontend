@@ -13,14 +13,14 @@ const CurrentTournament = () => {
     queryFn: tournamentService.getAppInfo
   });
 
-  // Helper function to check if draft is closed
-  const isDraftClosed = (tournament) => {
-    if (!tournament?.draft_window?.end) return true;
-    return Date.now() > new Date(tournament.draft_window.end).getTime();
+  // Helper function to get draft window status
+  const getDraftStatus = (tournament) => {
+    if (!tournament?.draft_window) return 'no_window';
+    return tournament.draft_window.status; // 'before_window', 'open', 'after_window'
   };
 
   // Determine if we should fetch scores or standings based on appInfo
-  const shouldFetchScores = Boolean(appInfo && appInfo.current_tournament && isDraftClosed(appInfo.current_tournament));
+  const shouldFetchScores = Boolean(appInfo && appInfo.current_tournament && getDraftStatus(appInfo.current_tournament) === 'after_window');
   const shouldFetchStandings = Boolean(appInfo && !appInfo.current_tournament);
 
   // Get current scores (only after draft closes)
@@ -64,12 +64,18 @@ const CurrentTournament = () => {
       return 'off-season';
     }
 
-    // There's a tournament
-    if (!isDraftClosed(appInfo.current_tournament)) {
+    // There's a tournament - check draft window status
+    const draftStatus = getDraftStatus(appInfo.current_tournament);
+
+    if (draftStatus === 'before_window') {
+      return 'before-draft';
+    }
+
+    if (draftStatus === 'open') {
       return 'draft-in-progress';
     }
 
-    // Draft is closed, should show scores
+    // Draft window is closed (after_window), should show scores
     if (isLoadingScores) return 'loading';
     if (scoresError) return 'error';
     return 'active-tournament';
@@ -110,6 +116,11 @@ const CurrentTournament = () => {
         </div>
       </div>
     );
+  }
+
+  // Before draft window opens
+  if (displayMode === 'before-draft') {
+    return <BeforeDraft appInfo={appInfo} />;
   }
 
   // Draft in progress state
@@ -423,6 +434,77 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+};
+
+// Before draft window opens component
+const BeforeDraft = ({ appInfo }) => {
+  const draftWindow = appInfo.current_tournament.draft_window;
+  const tournament = appInfo.current_tournament;
+  const [timeRemaining, setTimeRemaining] = useState('');
+
+  useEffect(() => {
+    const startTime = new Date(draftWindow.start).getTime();
+
+    const updateCountdown = () => {
+      const now = Date.now();
+      const diff = startTime - now;
+
+      if (diff <= 0) {
+        setTimeRemaining('Draft window opening...');
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const parts = [];
+      if (days > 0) parts.push(`${days}d`);
+      parts.push(`${hours}h`);
+      parts.push(`${minutes}m`);
+      parts.push(`${seconds}s`);
+
+      setTimeRemaining(parts.join(' '));
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [draftWindow.start]);
+
+  const formatDraftOpening = (startDate) => {
+    return new Date(startDate).toLocaleString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'America/New_York'
+    });
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-country-club p-8 text-center max-w-2xl mx-auto animate-fade-in">
+      <div className="w-20 h-20 bg-clubhouse-beige rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg className="w-10 h-10 text-clubhouse-brown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <h3 className="font-display text-3xl text-clubhouse-mahogany mb-3">
+        {tournament.name}
+      </h3>
+      <p className="font-sans text-clubhouse-brown mb-2">
+        The draft window will open soon. Check back to make your picks!
+      </p>
+      <p className="font-sans text-sm text-clubhouse-brown mb-2">
+        Draft opens: {formatDraftOpening(draftWindow.start)}
+      </p>
+      <p className="font-display text-2xl text-clubhouse-brown mb-2">
+        {timeRemaining}
+      </p>
     </div>
   );
 };
