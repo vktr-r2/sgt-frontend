@@ -213,10 +213,10 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
   const PAR_PER_ROUND = 72;
   const currentRound = tournament?.current_round || 1;
 
-  // Format thru display (e.g., "F" -> "18", "12" -> "12")
+  // Format thru display (e.g., "F" for finished, "12" for in-progress)
   const formatThru = (thru) => {
     if (!thru) return null;
-    if (thru === 'F' || thru === '18') return '18';
+    if (thru === '18') return 'F';
     return thru;
   };
 
@@ -302,10 +302,10 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
               <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany w-10"></th>
               <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany w-24">Player</th>
               <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany">Golfer</th>
-              <th className={`px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany ${currentRound === 1 ? 'w-24' : 'w-12'}`}>R1</th>
-              <th className={`px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany ${currentRound === 2 ? 'w-24' : 'w-12'}`}>R2</th>
-              <th className={`px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany ${currentRound === 3 ? 'w-24' : 'w-12'}`}>R3</th>
-              <th className={`px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany ${currentRound === 4 ? 'w-24' : 'w-12'}`}>R4</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R1</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R2</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R3</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R4</th>
               <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-14">Tot</th>
               <th className="px-3 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-16 border-l-2 border-clubhouse-brown">Team</th>
             </tr>
@@ -373,7 +373,9 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                       const isOverPar = round && (round.score - PAR_PER_ROUND) > 0;
                       const isCurrentRound = roundNum === currentRound;
                       const thru = round?.thru ? formatThru(round.thru) : null;
-                      const showThru = isCurrentRound && round && thru;
+                      // Only show thru for current round, active golfers (not cut/wd)
+                      const isActiveGolfer = golfer.status === 'active' || golfer.status === 'complete';
+                      const showThru = isCurrentRound && round && thru && isActiveGolfer;
 
                       return (
                         <td
@@ -384,12 +386,14 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                                      ${isOverPar ? 'text-error-red' : ''}
                                      ${!isUnderPar && !isOverPar && round ? 'text-clubhouse-brown' : 'text-clubhouse-brown'}`}
                         >
-                          {scoreStr}
-                          {showThru && (
-                            <span className="text-xs text-clubhouse-brown/70 ml-1">
-                              (thru {thru})
-                            </span>
-                          )}
+                          <span className="relative inline-block">
+                            {scoreStr}
+                            {showThru && (
+                              <span className="absolute left-full ml-0.5 text-xs text-clubhouse-brown/70 whitespace-nowrap">
+                                ({thru})
+                              </span>
+                            )}
+                          </span>
                         </td>
                       );
                     })}
