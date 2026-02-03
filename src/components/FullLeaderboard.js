@@ -141,7 +141,7 @@ const FullLeaderboard = () => {
 };
 
 const PlayerRow = ({ player, index, par, isBelowCut }) => {
-  const { name, position, status, total_strokes, total_to_par, thru, rounds, is_drafted } = player;
+  const { name, position, status, total_strokes, total_to_par, thru, rounds, drafted_by } = player;
 
   // Get round score by round number
   const getRoundScore = (roundNum) => {
@@ -161,7 +161,7 @@ const PlayerRow = ({ player, index, par, isBelowCut }) => {
   const getRowClasses = () => {
     let classes = 'border-b border-clubhouse-beige transition-colors duration-150 ';
 
-    if (is_drafted) {
+    if (drafted_by) {
       classes += 'bg-augusta-green-50 border-l-4 border-l-augusta-green-600 ';
     } else if (isBelowCut) {
       classes += 'bg-gray-50 text-gray-500 ';
@@ -198,12 +198,12 @@ const PlayerRow = ({ player, index, par, isBelowCut }) => {
         {position || '-'}
       </td>
       <td className="px-3 py-2 font-sans text-clubhouse-mahogany">
-        <span className={is_drafted ? 'font-semibold' : ''}>
+        <span className={drafted_by ? 'font-semibold' : ''}>
           {name}
         </span>
-        {is_drafted && (
+        {drafted_by && (
           <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-augusta-green-600 text-white">
-            Drafted
+            {drafted_by}
           </span>
         )}
         {getStatusBadge()}

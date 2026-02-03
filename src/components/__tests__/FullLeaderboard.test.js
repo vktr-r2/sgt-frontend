@@ -62,7 +62,7 @@ const mockLeaderboardData = {
           { round: 1, score: 68 },
           { round: 2, score: 70 }
         ],
-        is_drafted: true
+        drafted_by: 'John'
       },
       {
         player_id: '456',
@@ -76,7 +76,7 @@ const mockLeaderboardData = {
           { round: 1, score: 70 },
           { round: 2, score: 70 }
         ],
-        is_drafted: false
+        drafted_by: null
       },
       {
         player_id: '789',
@@ -90,7 +90,7 @@ const mockLeaderboardData = {
           { round: 1, score: 76 },
           { round: 2, score: 74 }
         ],
-        is_drafted: false
+        drafted_by: null
       }
     ]
   }
@@ -235,13 +235,13 @@ describe('FullLeaderboard Component', () => {
       });
     });
 
-    test('displays "Drafted" badge for drafted players', async () => {
+    test('displays drafter name badge for drafted players', async () => {
       tournamentService.getFullLeaderboard.mockResolvedValue(mockLeaderboardData);
 
       render(<FullLeaderboard />, { wrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Drafted')).toBeInTheDocument();
+        expect(screen.getByText('John')).toBeInTheDocument();
       });
     });
 

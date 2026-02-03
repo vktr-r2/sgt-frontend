@@ -156,9 +156,9 @@ const ActiveTournament = ({ scores }) => {
   return (
     <div className="space-y-6">
       <TournamentHeader tournament={tournament} userPosition={userLeaderboard?.current_position} />
-      {/* Tournament leaderboard - centered at 60% width */}
+      {/* Tournament leaderboard - centered at 75% width */}
       <div className="flex justify-center">
-        <div className="w-full max-w-4xl" style={{ width: '60%', minWidth: '320px' }}>
+        <div className="w-full max-w-5xl" style={{ width: '75%', minWidth: '320px' }}>
           <TournamentLeaderboard leaderboard={leaderboard} currentUserId={currentUserId} tournament={tournament} />
         </div>
       </div>
@@ -211,6 +211,14 @@ const TournamentHeader = ({ tournament, userPosition }) => {
 // Tournament Leaderboard component - shows all users' standings
 const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
   const PAR_PER_ROUND = 72;
+  const currentRound = tournament?.current_round || 1;
+
+  // Format thru display (e.g., "F" for finished, "12" for in-progress)
+  const formatThru = (thru) => {
+    if (!thru) return null;
+    if (thru === '18') return 'F';
+    return thru;
+  };
 
   // Convert raw score to par-relative string (E, -2, +3, etc.)
   const formatScoreToPar = (rawScore) => {
@@ -294,10 +302,10 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
               <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany w-10"></th>
               <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany w-24">Player</th>
               <th className="px-2 py-2 text-left font-sans font-semibold text-clubhouse-mahogany">Golfer</th>
-              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R1</th>
-              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R2</th>
-              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R3</th>
-              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-12">R4</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R1</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R2</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R3</th>
+              <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R4</th>
               <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-14">Tot</th>
               <th className="px-3 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-16 border-l-2 border-clubhouse-brown">Team</th>
             </tr>
@@ -363,6 +371,11 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                       const scoreStr = round ? formatScoreToPar(round.score) : '--';
                       const isUnderPar = round && (round.score - PAR_PER_ROUND) < 0;
                       const isOverPar = round && (round.score - PAR_PER_ROUND) > 0;
+                      const isCurrentRound = roundNum === currentRound;
+                      const thru = round?.thru ? formatThru(round.thru) : null;
+                      // Only show thru for current round, active golfers (not cut/wd)
+                      const isActiveGolfer = golfer.status === 'active' || golfer.status === 'complete';
+                      const showThru = isCurrentRound && round && thru && isActiveGolfer;
 
                       return (
                         <td
@@ -373,7 +386,14 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                                      ${isOverPar ? 'text-error-red' : ''}
                                      ${!isUnderPar && !isOverPar && round ? 'text-clubhouse-brown' : 'text-clubhouse-brown'}`}
                         >
-                          {scoreStr}
+                          <span className="relative inline-block">
+                            {scoreStr}
+                            {showThru && (
+                              <span className="absolute left-full ml-0.5 text-xs text-clubhouse-brown/70 whitespace-nowrap">
+                                ({thru})
+                              </span>
+                            )}
+                          </span>
                         </td>
                       );
                     })}
