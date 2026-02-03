@@ -93,23 +93,32 @@ const CurrentSeason = () => {
         <table className="w-full min-w-[640px]">
           <thead className="bg-clubhouse-beige border-b-2 border-clubhouse-brown">
             <tr>
-              <th className="px-6 py-3 text-left font-sans text-sm font-semibold text-clubhouse-mahogany">
+              <th className="px-4 py-3 text-left font-sans text-sm font-semibold text-clubhouse-mahogany">
                 Rank
               </th>
-              <th className="px-6 py-3 text-left font-sans text-sm font-semibold text-clubhouse-mahogany">
+              <th className="px-4 py-3 text-left font-sans text-sm font-semibold text-clubhouse-mahogany">
                 Player
               </th>
-              <th className="px-6 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
+              <th className="px-4 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
                 Points
               </th>
-              <th className="px-6 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
-                Played
+              <th className="px-3 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
+                1st
               </th>
-              <th className="px-6 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
-                Wins
+              <th className="px-3 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
+                2nd
               </th>
-              <th className="px-6 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
-                Top 3
+              <th className="px-3 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
+                3rd
+              </th>
+              <th className="px-3 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
+                4th
+              </th>
+              <th className="px-3 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
+                Winners
+              </th>
+              <th className="px-3 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
+                Cuts
               </th>
             </tr>
           </thead>
@@ -124,23 +133,32 @@ const CurrentSeason = () => {
                            transition-colors duration-150
                            animate-stagger-${Math.min(index + 1, 8)}`}
               >
-                <td className="px-6 py-4 font-sans text-clubhouse-mahogany">
+                <td className="px-4 py-4 font-sans text-clubhouse-mahogany">
                   {user.rank}
                 </td>
-                <td className="px-6 py-4 font-sans font-semibold text-clubhouse-mahogany">
+                <td className="px-4 py-4 font-sans font-semibold text-clubhouse-mahogany">
                   {user.username}
                 </td>
-                <td className="px-6 py-4 text-center font-sans font-bold text-augusta-green-600">
+                <td className="px-4 py-4 text-center font-sans font-bold text-augusta-green-600">
                   {user.total_points}
                 </td>
-                <td className="px-6 py-4 text-center font-sans text-clubhouse-brown">
-                  {user.tournaments_played}
+                <td className="px-3 py-4 text-center font-sans text-clubhouse-brown">
+                  {user.first_place}
                 </td>
-                <td className="px-6 py-4 text-center font-sans text-clubhouse-brown">
-                  {user.wins}
+                <td className="px-3 py-4 text-center font-sans text-clubhouse-brown">
+                  {user.second_place}
                 </td>
-                <td className="px-6 py-4 text-center font-sans text-clubhouse-brown">
-                  {user.top_3_finishes}
+                <td className="px-3 py-4 text-center font-sans text-clubhouse-brown">
+                  {user.third_place}
+                </td>
+                <td className="px-3 py-4 text-center font-sans text-clubhouse-brown">
+                  {user.fourth_place}
+                </td>
+                <td className="px-3 py-4 text-center font-sans text-clubhouse-brown">
+                  {user.winners_picked}
+                </td>
+                <td className="px-3 py-4 text-center font-sans text-clubhouse-brown">
+                  {user.total_cuts_missed}
                 </td>
               </tr>
             ))}
