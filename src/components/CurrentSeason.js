@@ -115,6 +115,9 @@ const CurrentSeason = () => {
                 4th
               </th>
               <th className="px-3 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
+                Majors
+              </th>
+              <th className="px-3 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
                 Winners
               </th>
               <th className="px-3 py-3 text-center font-sans text-sm font-semibold text-clubhouse-mahogany">
@@ -153,6 +156,9 @@ const CurrentSeason = () => {
                 </td>
                 <td className="px-3 py-4 text-center font-sans text-clubhouse-brown">
                   {user.fourth_place}
+                </td>
+                <td className="px-3 py-4 text-center font-sans text-clubhouse-brown">
+                  {user.majors_won}
                 </td>
                 <td className="px-3 py-4 text-center font-sans text-clubhouse-brown">
                   {user.winners_picked}

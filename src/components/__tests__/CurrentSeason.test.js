@@ -45,27 +45,39 @@ const mockStandingsData = {
         user_id: 1,
         username: 'Tiger Woods',
         total_points: -15,
-        tournaments_played: 8,
-        wins: 3,
-        top_3_finishes: 6
+        first_place: 3,
+        second_place: 2,
+        third_place: 1,
+        fourth_place: 2,
+        majors_won: 1,
+        winners_picked: 5,
+        total_cuts_missed: 4
       },
       {
         rank: 2,
         user_id: 2,
         username: 'Rory McIlroy',
         total_points: -12,
-        tournaments_played: 8,
-        wins: 2,
-        top_3_finishes: 5
+        first_place: 2,
+        second_place: 3,
+        third_place: 2,
+        fourth_place: 1,
+        majors_won: 0,
+        winners_picked: 4,
+        total_cuts_missed: 6
       },
       {
         rank: 3,
         user_id: 3,
         username: 'Jordan Spieth',
         total_points: -8,
-        tournaments_played: 7,
-        wins: 1,
-        top_3_finishes: 4
+        first_place: 1,
+        second_place: 2,
+        third_place: 3,
+        fourth_place: 1,
+        majors_won: 1,
+        winners_picked: 3,
+        total_cuts_missed: 8
       }
     ]
   }
@@ -127,9 +139,13 @@ describe('CurrentSeason Component', () => {
         expect(screen.getByText('Rank')).toBeInTheDocument();
         expect(screen.getByText('Player')).toBeInTheDocument();
         expect(screen.getByText('Points')).toBeInTheDocument();
-        expect(screen.getByText('Played')).toBeInTheDocument();
-        expect(screen.getByText('Wins')).toBeInTheDocument();
-        expect(screen.getByText('Top 3')).toBeInTheDocument();
+        expect(screen.getByText('1st')).toBeInTheDocument();
+        expect(screen.getByText('2nd')).toBeInTheDocument();
+        expect(screen.getByText('3rd')).toBeInTheDocument();
+        expect(screen.getByText('4th')).toBeInTheDocument();
+        expect(screen.getByText('Majors')).toBeInTheDocument();
+        expect(screen.getByText('Winners')).toBeInTheDocument();
+        expect(screen.getByText('Cuts')).toBeInTheDocument();
       });
     });
 
@@ -193,6 +209,22 @@ describe('CurrentSeason Component', () => {
         expect(screen.getByText('-15')).toBeInTheDocument();
         expect(screen.getByText('-12')).toBeInTheDocument();
         expect(screen.getByText('-8')).toBeInTheDocument();
+      });
+    });
+
+    test('displays placement counts and statistics correctly', async () => {
+      tournamentService.getSeasonStandings.mockResolvedValue(mockStandingsData);
+
+      render(<CurrentSeason />, { wrapper });
+
+      await waitFor(() => {
+        // Check that placement, majors, winners, and cuts data is displayed
+        // Tiger Woods: 3 first, 2 second, 1 third, 2 fourth, 1 major, 5 winners, 4 cuts
+        const rows = screen.getAllByRole('row');
+        const tigerRow = rows.find(row => row.textContent.includes('Tiger Woods'));
+        expect(tigerRow.textContent).toContain('3'); // first_place
+        expect(tigerRow.textContent).toContain('5'); // winners_picked
+        expect(tigerRow.textContent).toContain('4'); // total_cuts_missed
       });
     });
   });
