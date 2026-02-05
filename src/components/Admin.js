@@ -14,9 +14,18 @@ function Admin() {
   const [isCreating, setIsCreating] = useState(false);
   const [newRecordData, setNewRecordData] = useState({});
 
+  // Filters and sorting state
+  const [filters, setFilters] = useState({
+    tournament_id: '',
+    user_id: '',
+    golfer_id: '',
+    sort_by: '',
+    sort_direction: 'asc'
+  });
+
   const { data: tableData, isLoading, error } = useQuery({
-    queryKey: ['adminTable', selectedTable],
-    queryFn: () => adminService.getTableData(selectedTable),
+    queryKey: ['adminTable', selectedTable, filters],
+    queryFn: () => adminService.getTableData(selectedTable, selectedTable === 'match_picks' ? filters : {}),
     enabled: !!selectedTable && !!user?.admin
   });
 
@@ -188,6 +197,33 @@ function Admin() {
     setNewRecordData({});
   };
 
+  const handleFilterChange = (filterName, value) => {
+    setFilters(prev => ({ ...prev, [filterName]: value }));
+  };
+
+  const handleSort = (columnName) => {
+    setFilters(prev => ({
+      ...prev,
+      sort_by: columnName,
+      sort_direction: prev.sort_by === columnName && prev.sort_direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      tournament_id: '',
+      user_id: '',
+      golfer_id: '',
+      sort_by: '',
+      sort_direction: 'asc'
+    });
+  };
+
+  const getSortIndicator = (columnName) => {
+    if (filters.sort_by !== columnName) return null;
+    return filters.sort_direction === 'asc' ? ' ▲' : ' ▼';
+  };
+
   if (isLoading) return <div className="loading">Loading admin data...</div>;
   if (error) return <div className="error">Error loading admin data</div>;
 
@@ -213,6 +249,7 @@ function Admin() {
                 setSelectedTable(e.target.value);
                 setEditingId(null);
                 setIsCreating(false);
+                resetFilters();
               }}
             >
               <option value="users">Users</option>
@@ -230,13 +267,75 @@ function Admin() {
         </button>
       </div>
 
+      {/* Match Picks Filters */}
+      {selectedTable === 'match_picks' && tableData?.lookups && (
+        <div className="filters-container">
+          <div className="filters-row">
+            <label>
+              Tournament:
+              <select
+                value={filters.tournament_id}
+                onChange={(e) => handleFilterChange('tournament_id', e.target.value)}
+              >
+                <option value="">All Tournaments</option>
+                {tableData.lookups.tournaments?.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              User:
+              <select
+                value={filters.user_id}
+                onChange={(e) => handleFilterChange('user_id', e.target.value)}
+              >
+                <option value="">All Users</option>
+                {tableData.lookups.users?.map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Golfer:
+              <select
+                value={filters.golfer_id}
+                onChange={(e) => handleFilterChange('golfer_id', e.target.value)}
+              >
+                <option value="">All Golfers</option>
+                {tableData.lookups.golfers?.map(g => (
+                  <option key={g.id} value={g.id}>{g.name}</option>
+                ))}
+              </select>
+            </label>
+
+            <button onClick={resetFilters} className="reset-btn">
+              Reset Filters
+            </button>
+          </div>
+          {tableData.total_count !== undefined && (
+            <div className="record-count">
+              Showing {tableData.data?.length || 0} records
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="table-container">
         {tableData?.data && (
           <table className="admin-table">
             <thead>
               <tr>
                 {tableData.columns.map(column => (
-                  <th key={column.name}>{column.name}</th>
+                  <th
+                    key={column.name}
+                    onClick={() => handleSort(column.name)}
+                    className="sortable-header"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {column.name}{getSortIndicator(column.name)}
+                  </th>
                 ))}
                 <th>Actions</th>
               </tr>
