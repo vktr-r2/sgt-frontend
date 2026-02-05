@@ -612,4 +612,231 @@ describe('Draft Component', () => {
       });
     });
   });
+
+  describe('localStorage Persistence', () => {
+    const STORAGE_KEY = 'sgt_draft_picks';
+
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    test('saves selections to localStorage when golfer is selected', async () => {
+      tournamentService.getDraftData.mockResolvedValue(mockPickModeDraftData);
+
+      const queryClient = createTestQueryClient();
+      render(<Draft />, { wrapper: createWrapper(queryClient) });
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Pick #1:')).toBeInTheDocument();
+      });
+
+      // Select a golfer
+      const select = screen.getByLabelText('Pick #1:');
+      await userEvent.selectOptions(select, '1');
+
+      // Check localStorage
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      expect(stored.tournamentId).toBe(mockTournament.id);
+      expect(stored.selections[0].id).toBe(1);
+    });
+
+    test('restores selections from localStorage on page load', async () => {
+      // Pre-save draft to localStorage
+      const savedDraft = {
+        tournamentId: mockTournament.id,
+        savedAt: Date.now(),
+        expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        selections: [
+          mockGolfers[0],
+          mockGolfers[1],
+          null, null, null, null, null, null
+        ]
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedDraft));
+
+      tournamentService.getDraftData.mockResolvedValue(mockPickModeDraftData);
+
+      const queryClient = createTestQueryClient();
+      render(<Draft />, { wrapper: createWrapper(queryClient) });
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Pick #1:')).toHaveValue('1');
+        expect(screen.getByLabelText('Pick #2:')).toHaveValue('2');
+      });
+    });
+
+    test('shows draft restored notification when selections are restored', async () => {
+      const savedDraft = {
+        tournamentId: mockTournament.id,
+        savedAt: Date.now(),
+        expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        selections: [mockGolfers[0], null, null, null, null, null, null, null]
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedDraft));
+
+      tournamentService.getDraftData.mockResolvedValue(mockPickModeDraftData);
+
+      const queryClient = createTestQueryClient();
+      render(<Draft />, { wrapper: createWrapper(queryClient) });
+
+      await waitFor(() => {
+        expect(screen.getByText(/your previous draft selections have been restored/i)).toBeInTheDocument();
+      });
+    });
+
+    test('can dismiss draft restored notification', async () => {
+      const savedDraft = {
+        tournamentId: mockTournament.id,
+        savedAt: Date.now(),
+        expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        selections: [mockGolfers[0], null, null, null, null, null, null, null]
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedDraft));
+
+      tournamentService.getDraftData.mockResolvedValue(mockPickModeDraftData);
+
+      const queryClient = createTestQueryClient();
+      render(<Draft />, { wrapper: createWrapper(queryClient) });
+
+      await waitFor(() => {
+        expect(screen.getByText(/your previous draft selections have been restored/i)).toBeInTheDocument();
+      });
+
+      const dismissButton = screen.getByRole('button', { name: /dismiss notification/i });
+      await userEvent.click(dismissButton);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/your previous draft selections have been restored/i)).not.toBeInTheDocument();
+      });
+    });
+
+    test('does not restore expired draft', async () => {
+      const expiredDraft = {
+        tournamentId: mockTournament.id,
+        savedAt: Date.now() - 100000,
+        expiresAt: Date.now() - 1000, // Expired
+        selections: [mockGolfers[0], null, null, null, null, null, null, null]
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(expiredDraft));
+
+      tournamentService.getDraftData.mockResolvedValue(mockPickModeDraftData);
+
+      const queryClient = createTestQueryClient();
+      render(<Draft />, { wrapper: createWrapper(queryClient) });
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Pick #1:')).toHaveValue('');
+      });
+
+      expect(screen.queryByText(/your previous draft selections have been restored/i)).not.toBeInTheDocument();
+    });
+
+    test('does not restore draft from different tournament', async () => {
+      const differentTournamentDraft = {
+        tournamentId: 999, // Different tournament
+        savedAt: Date.now(),
+        expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        selections: [mockGolfers[0], null, null, null, null, null, null, null]
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(differentTournamentDraft));
+
+      tournamentService.getDraftData.mockResolvedValue(mockPickModeDraftData);
+
+      const queryClient = createTestQueryClient();
+      render(<Draft />, { wrapper: createWrapper(queryClient) });
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Pick #1:')).toHaveValue('');
+      });
+
+      expect(screen.queryByText(/your previous draft selections have been restored/i)).not.toBeInTheDocument();
+    });
+
+    test('clears localStorage on successful submission', async () => {
+      tournamentService.getDraftData.mockResolvedValue(mockPickModeDraftData);
+      tournamentService.submitPicks.mockResolvedValue({ message: 'Picks submitted successfully!' });
+
+      const queryClient = createTestQueryClient();
+      render(<Draft />, { wrapper: createWrapper(queryClient) });
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Pick #1:')).toBeInTheDocument();
+      });
+
+      // Select 8 golfers
+      for (let i = 1; i <= 8; i++) {
+        const select = screen.getByLabelText(`Pick #${i}:`);
+        await userEvent.selectOptions(select, i.toString());
+      }
+
+      // Verify localStorage has data before submit
+      expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull();
+
+      const submitButton = screen.getByRole('button', { name: /submit picks/i });
+      await userEvent.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/picks submitted successfully/i)).toBeInTheDocument();
+      });
+
+      // localStorage should be cleared after successful submission
+      expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    });
+
+    test('server data takes precedence over localStorage in edit mode', async () => {
+      // Save different selections to localStorage
+      const savedDraft = {
+        tournamentId: mockTournament.id,
+        savedAt: Date.now(),
+        expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        selections: [
+          mockGolfers[4], // Justin Thomas (id: 5)
+          mockGolfers[5], // Dustin Johnson (id: 6)
+          null, null, null, null, null, null
+        ]
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedDraft));
+
+      // Server returns different picks
+      tournamentService.getDraftData.mockResolvedValue(mockEditModeDraftData);
+
+      const queryClient = createTestQueryClient();
+      render(<Draft />, { wrapper: createWrapper(queryClient) });
+
+      // Should show server data (Tiger Woods = 1, Phil Mickelson = 2)
+      await waitFor(() => {
+        expect(screen.getByLabelText('Pick #1:')).toHaveValue('1');
+        expect(screen.getByLabelText('Pick #2:')).toHaveValue('2');
+      });
+
+      // Should not show restored notification in edit mode
+      expect(screen.queryByText(/your previous draft selections have been restored/i)).not.toBeInTheDocument();
+    });
+
+    test('replaces unavailable golfers with null when restoring', async () => {
+      // Save draft with a golfer that is no longer available
+      const unavailableGolfer = { id: 999, full_name: 'Withdrawn Player' };
+      const savedDraft = {
+        tournamentId: mockTournament.id,
+        savedAt: Date.now(),
+        expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        selections: [
+          mockGolfers[0], // Tiger Woods - still available
+          unavailableGolfer, // Not in golfers list
+          null, null, null, null, null, null
+        ]
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedDraft));
+
+      tournamentService.getDraftData.mockResolvedValue(mockPickModeDraftData);
+
+      const queryClient = createTestQueryClient();
+      render(<Draft />, { wrapper: createWrapper(queryClient) });
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Pick #1:')).toHaveValue('1'); // Valid golfer restored
+        expect(screen.getByLabelText('Pick #2:')).toHaveValue(''); // Unavailable golfer not restored
+      });
+    });
+  });
 });
