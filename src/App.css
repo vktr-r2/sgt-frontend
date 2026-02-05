@@ -17,8 +17,16 @@ body {
 
 .App-header {
   background-color: white;
-  padding: 20px;
   border-bottom: 1px solid #ddd;
+  width: 100%;
+}
+
+.App-banner {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  object-position: center;
 }
 
 .App-header h1 {
@@ -273,6 +281,62 @@ button:disabled {
   outline: none;
   border-color: #80bdff;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Admin Filters */
+.filters-container {
+  background-color: #f8f9fa;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.filters-row {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filters-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.filters-row select {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  min-width: 180px;
+  font-size: 14px;
+}
+
+.reset-btn {
+  background-color: #6c757d;
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.reset-btn:hover {
+  background-color: #5a6268;
+}
+
+.record-count {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #666;
+}
+
+.sortable-header {
+  user-select: none;
+}
+
+.sortable-header:hover {
+  background-color: #e9ecef;
 }
 
 /* Note: Utility classes now handled by Tailwind CSS */

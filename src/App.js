@@ -20,7 +20,11 @@ function App() {
       <Router>
         <div className="App">
           <header className="App-header">
-            <h1>Spreadsheet Golf Tour</h1>
+            <img
+              src="/sgt-banner.png"
+              alt="Spreadsheet Golf Tour"
+              className="App-banner"
+            />
           </header>
           
           <main>
