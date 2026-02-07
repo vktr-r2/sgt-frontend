@@ -50,5 +50,23 @@ export const authService = {
 
   isAuthenticated: () => {
     return !!localStorage.getItem('authToken');
+  },
+
+  requestPasswordReset: async (email) => {
+    const response = await api.post('/users/password', {
+      user: { email }
+    });
+    return response.data;
+  },
+
+  resetPassword: async (token, password, passwordConfirmation) => {
+    const response = await api.put('/users/password', {
+      user: {
+        reset_password_token: token,
+        password,
+        password_confirmation: passwordConfirmation
+      }
+    });
+    return response.data;
   }
 };
