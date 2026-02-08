@@ -291,10 +291,45 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
     return relativeToPar > 0 ? `+${relativeToPar}` : `${relativeToPar}`;
   };
 
+  // Parse cut line score string to numeric value (e.g., "-1" -> -1, "+3" -> 3, "E" -> 0)
+  const parseCutLineScore = (scoreStr) => {
+    if (!scoreStr) return null;
+    if (scoreStr === 'E') return 0;
+    return parseInt(scoreStr, 10);
+  };
+
+  // Check if golfer is below the cut line based on their score
+  const isBelowCutLine = (golfer) => {
+    // Only apply cut line logic after round 2
+    if (currentRound < 2) return false;
+
+    // Need cut line data
+    if (!tournament?.cut_line?.score) return false;
+
+    // Already marked as cut or wd by API
+    if (golfer.status === 'cut' || golfer.status === 'wd') return false;
+
+    // Calculate golfer's total to par
+    const completedRounds = golfer.rounds.filter(r => r.score);
+    if (completedRounds.length < 2) return false; // Need at least 2 rounds to apply cut
+
+    const totalStrokes = completedRounds.reduce((sum, r) => sum + r.score, 0);
+    const parForRounds = completedRounds.length * PAR_PER_ROUND;
+    const golferToPar = totalStrokes - parForRounds;
+
+    const cutLine = parseCutLineScore(tournament.cut_line.score);
+    if (cutLine === null) return false;
+
+    // Golfer is below cut line if their score is worse (higher) than cut line
+    return golferToPar > cutLine;
+  };
+
   // Get status indicator for golfer (cut, wd, etc.)
-  const getStatusIndicator = (status) => {
-    if (status === 'cut') return { icon: '✂️', color: 'bg-red-100' };
-    if (status === 'wd') return { icon: '🚫', color: 'bg-red-200' };
+  const getStatusIndicator = (golfer) => {
+    if (golfer.status === 'cut') return { icon: '✂️', color: 'bg-red-100' };
+    if (golfer.status === 'wd') return { icon: '🚫', color: 'bg-red-200' };
+    // Check if projected cut based on cut line
+    if (isBelowCutLine(golfer)) return { icon: '✂️', color: 'bg-red-100' };
     return null;
   };
 
@@ -328,7 +363,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
               const rowCount = Math.max(golfers.length, 1);
 
               return golfers.map((golfer, golferIndex) => {
-                const statusIndicator = getStatusIndicator(golfer.status);
+                const statusIndicator = getStatusIndicator(golfer);
                 const isFirstGolfer = golferIndex === 0;
                 const isLastGolfer = golferIndex === golfers.length - 1;
 
@@ -384,8 +419,8 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                       const isOverPar = round && (round.score - PAR_PER_ROUND) > 0;
                       const isCurrentRound = roundNum === currentRound;
                       const thru = round?.thru ? formatThru(round.thru) : null;
-                      // Only show thru for current round, active golfers (not cut/wd)
-                      const isActiveGolfer = golfer.status === 'active' || golfer.status === 'complete';
+                      // Only show thru for current round, active golfers (not cut/wd/projected cut)
+                      const isActiveGolfer = (golfer.status === 'active' || golfer.status === 'complete') && !isBelowCutLine(golfer);
                       const showThru = isCurrentRound && round && thru && isActiveGolfer;
 
                       return (
