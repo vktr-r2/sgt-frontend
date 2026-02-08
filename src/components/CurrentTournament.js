@@ -97,6 +97,7 @@ const CurrentTournament = () => {
 
   // Error state
   if (displayMode === 'error') {
+    // eslint-disable-next-line no-unused-vars
     const error = appInfoError || scoresError || standingsError;
     return (
       <div className="bg-red-50 border-l-4 border-error-red rounded-lg p-6 max-w-md mx-auto animate-fade-in">
@@ -282,7 +283,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
       const golferTotal = g.rounds.reduce((rSum, r) => rSum + (r.score || 0), 0);
       return sum + golferTotal;
     }, 0);
-    const totalPar = golfers.length * 4 * PAR_PER_ROUND; // 4 rounds per golfer
+    // totalPar would be: golfers.length * 4 * PAR_PER_ROUND (4 rounds per golfer)
     const roundsPlayed = golfers.reduce((sum, g) => sum + g.rounds.length, 0);
     const actualPar = roundsPlayed * PAR_PER_ROUND;
     const relativeToPar = totalStrokes - actualPar;

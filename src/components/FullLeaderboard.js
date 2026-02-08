@@ -141,7 +141,7 @@ const FullLeaderboard = () => {
 };
 
 const PlayerRow = ({ player, index, par, isBelowCut }) => {
-  const { name, position, status, total_strokes, total_to_par, thru, rounds, drafted_by } = player;
+  const { name, position, status, total_strokes, total_to_par, rounds, drafted_by } = player;
 
   // Get round score by round number
   const getRoundScore = (roundNum) => {
