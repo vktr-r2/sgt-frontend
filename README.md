@@ -1,70 +1,168 @@
-# Getting Started with Create React App
+# SGT Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React frontend for a fantasy golf competition where friends compete by drafting PGA Tour golfers each week.
 
-## Available Scripts
+![React](https://img.shields.io/badge/React-19.1-61DAFB?logo=react)
+![Tailwind](https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss)
+![React Query](https://img.shields.io/badge/React_Query-5.x-FF4154)
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Prerequisites
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- Node.js 18+
+- npm or yarn
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## Environment Variables
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Create a `.env` file in the project root:
 
-### `npm run build`
+```bash
+# Local development
+REACT_APP_API_URL=http://localhost:8080
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Production
+REACT_APP_API_URL=https://your-api.railway.app
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Local Development
 
-### `npm run eject`
+```bash
+# Install dependencies
+npm install
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# Start development server
+npm start
+# Runs on http://localhost:3000
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Testing
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+# Run tests
+npm test
 
-## Learn More
+# Run tests with coverage
+npm test -- --coverage
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# Run tests once (CI mode)
+npm test -- --watchAll=false
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+**Test Count**: 93+ tests across all components
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Production Build
 
-### Analyzing the Bundle Size
+```bash
+# Build for production
+npm run build
+# Output: /build directory
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# Deploy to Vercel
+vercel --prod
+```
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Project Structure
 
-### Advanced Configuration
+```
+src/
+├── components/              # React components
+│   ├── __tests__/          # Component tests
+│   ├── Admin.js            # Admin panel
+│   ├── CurrentSeason.js    # Season standings
+│   ├── CurrentTournament.js # Live tournament scores
+│   ├── Dashboard.js        # Home page
+│   ├── Draft.js            # Draft interface (pick/edit/review modes)
+│   ├── ForgotPassword.js   # Password reset request
+│   ├── FullLeaderboard.js  # All 150+ tournament players
+│   ├── Login.js            # Authentication
+│   └── ResetPassword.js    # Password reset form
+├── services/               # API clients
+│   ├── api.js              # Axios instance with auth headers
+│   ├── auth.js             # Authentication service
+│   └── tournament.js       # Tournament API service
+├── __mocks__/              # Jest mocks
+│   └── react-router-dom.js # Router mock
+├── App.js                  # Routes and providers
+├── App.css                 # Global styles
+└── index.css               # Tailwind directives
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## Component Overview
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+| Component | Tests | Description |
+|-----------|-------|-------------|
+| Login | 13 | Email/password form with golf aesthetic |
+| Draft | 28 | 8-golfer selection grid with staggered animations |
+| CurrentTournament | 23 | Live scores, draft status, cut detection |
+| CurrentSeason | 17 | Cumulative season standings with user highlighting |
+| FullLeaderboard | 20 | All tournament players with drafted badges |
+| ForgotPassword | 10 | Password reset email request |
+| ResetPassword | 15 | Token-based password reset |
+| Admin | 11 | User and data management |
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Design System
+
+### Colors
+
+- **Augusta Green**: Primary actions, links, user highlighting
+- **Clubhouse Tones**: Backgrounds (cream, beige), text (brown, mahogany)
+- **Trophy Gold**: Highlights, premium features
+- **Error Red**: Error states, cut players
+
+### Typography
+
+- **Playfair Display**: Headings (serif, elegant)
+- **Lato**: UI elements (sans-serif, clean)
+- **Merriweather**: Body text (serif, readable)
+
+### Animations
+
+- **fade-in**: Page entrance (0.6s)
+- **slide-up**: Component reveals (0.5s)
+- **stagger-1 to stagger-8**: Sequential row animations
+
+---
+
+## Key Features
+
+- **Responsive Design**: Mobile-first with desktop enhancements
+- **User Highlighting**: Current user's row highlighted in standings
+- **Draft Status**: Countdown timers for draft window open/close
+- **Cut Detection**: Proactive cut line detection after Round 2
+- **Auto-Refresh**: React Query refetches data every 5 minutes
+- **Loading States**: Spinners and skeleton loading
+- **Error Recovery**: Retry buttons on API failures
+
+---
+
+## Available Routes
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/` | Dashboard | Home page with tournament and season info |
+| `/login` | Login | Authentication |
+| `/draft` | Draft | Golfer selection interface |
+| `/forgot-password` | ForgotPassword | Request password reset |
+| `/reset-password` | ResetPassword | Set new password |
+| `/admin` | Admin | Admin panel (requires admin role) |
+
+---
+
+## License
+
+Private project - All rights reserved.
