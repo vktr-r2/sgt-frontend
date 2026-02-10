@@ -37,5 +37,10 @@ export const adminService = {
   deleteRecord: async (tableName, recordId) => {
     const response = await api.delete(`/admin/table/${tableName}/${recordId}`);
     return response.data;
+  },
+
+  generatePasswordResetLink: async (userId) => {
+    const response = await api.post(`/admin/users/${userId}/generate_reset_link`);
+    return response.data;
   }
 };

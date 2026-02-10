@@ -13,6 +13,7 @@ function Admin() {
   const [editData, setEditData] = useState({});
   const [isCreating, setIsCreating] = useState(false);
   const [newRecordData, setNewRecordData] = useState({});
+  const [resetLinkModal, setResetLinkModal] = useState({ isOpen: false, link: '', user: null, expiresAt: '' });
 
   // Filters and sorting state
   const [filters, setFilters] = useState({
@@ -51,6 +52,18 @@ function Admin() {
     mutationFn: (id) => adminService.deleteRecord(selectedTable, id),
     onSuccess: () => {
       queryClient.invalidateQueries(['adminTable', selectedTable]);
+    }
+  });
+
+  const resetLinkMutation = useMutation({
+    mutationFn: (userId) => adminService.generatePasswordResetLink(userId),
+    onSuccess: (data) => {
+      setResetLinkModal({
+        isOpen: true,
+        link: data.reset_link,
+        user: data.user,
+        expiresAt: new Date(data.expires_at).toLocaleString()
+      });
     }
   });
 
@@ -195,6 +208,19 @@ function Admin() {
   const handleCancelNew = () => {
     setIsCreating(false);
     setNewRecordData({});
+  };
+
+  const handleGenerateResetLink = (userId) => {
+    resetLinkMutation.mutate(userId);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(resetLinkModal.link);
+    alert('Link copied to clipboard!');
+  };
+
+  const handleCloseResetModal = () => {
+    setResetLinkModal({ isOpen: false, link: '', user: null, expiresAt: '' });
   };
 
   const handleFilterChange = (filterName, value) => {
@@ -406,6 +432,15 @@ function Admin() {
                         >
                           Delete
                         </button>
+                        {selectedTable === 'users' && (
+                          <button
+                            onClick={() => handleGenerateResetLink(record.id)}
+                            className="pw-reset-btn"
+                            disabled={resetLinkMutation.isLoading}
+                          >
+                            Reset PW
+                          </button>
+                        )}
                       </>
                     )}
                   </td>
@@ -415,6 +450,32 @@ function Admin() {
           </table>
         )}
       </div>
+
+      {/* Password Reset Link Modal */}
+      {resetLinkModal.isOpen && (
+        <div className="modal-overlay" onClick={handleCloseResetModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Password Reset Link Generated</h3>
+            <p><strong>User:</strong> {resetLinkModal.user?.name} ({resetLinkModal.user?.email})</p>
+            <p><strong>Expires:</strong> {resetLinkModal.expiresAt}</p>
+            <div className="reset-link-container">
+              <input
+                type="text"
+                value={resetLinkModal.link}
+                readOnly
+                className="reset-link-input"
+              />
+              <button onClick={handleCopyLink} className="copy-btn">
+                Copy
+              </button>
+            </div>
+            <p className="reset-link-note">Share this link with the user via text or other means.</p>
+            <button onClick={handleCloseResetModal} className="close-modal-btn">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
