@@ -52,13 +52,6 @@ export const authService = {
     return !!localStorage.getItem('authToken');
   },
 
-  requestPasswordReset: async (email) => {
-    const response = await api.post('/users/password', {
-      user: { email }
-    });
-    return response.data;
-  },
-
   resetPassword: async (token, password, passwordConfirmation) => {
     const response = await api.put('/users/password', {
       user: {

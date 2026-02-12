@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/auth';
 
 function Login() {
@@ -113,15 +113,6 @@ function Login() {
               </span>
             ) : 'Login'}
           </button>
-
-          <div className="text-center">
-            <Link
-              to="/forgot-password"
-              className="text-augusta-green-600 hover:text-augusta-green-700 font-sans text-sm font-medium transition-colors"
-            >
-              Forgot Password?
-            </Link>
-          </div>
         </form>
       </div>
     </div>
