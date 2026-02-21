@@ -180,6 +180,8 @@ const ActiveTournament = ({ scores }) => {
 
 // Tournament Header component (placeholder)
 const TournamentHeader = ({ tournament, userPosition }) => {
+  if (!tournament) return null;
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -222,7 +224,7 @@ const TournamentHeader = ({ tournament, userPosition }) => {
 
 // Tournament Leaderboard component - shows all users' standings
 const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
-  const PAR_PER_ROUND = 72;
+  const parPerRound = tournament?.par || 72;
   const currentRound = tournament?.current_round || 1;
 
   // Format thru display (e.g., "F" for finished, "12" for in-progress)
@@ -235,7 +237,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
   // Convert raw score to par-relative string (E, -2, +3, etc.)
   const formatScoreToPar = (rawScore) => {
     if (rawScore === null || rawScore === undefined) return '--';
-    const relativeScore = rawScore - PAR_PER_ROUND;
+    const relativeScore = rawScore - parPerRound;
     if (relativeScore === 0) return 'E';
     return relativeScore > 0 ? `+${relativeScore}` : `${relativeScore}`;
   };
@@ -271,7 +273,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
     const totalStrokes = golfer.rounds.reduce((sum, r) => sum + (r.score || 0), 0);
     if (totalStrokes === 0) return '--';
     const roundsPlayed = golfer.rounds.filter(r => r.score).length;
-    const parForRounds = roundsPlayed * PAR_PER_ROUND;
+    const parForRounds = roundsPlayed * parPerRound;
     const relativeToPar = totalStrokes - parForRounds;
     if (relativeToPar === 0) return 'E';
     return relativeToPar > 0 ? `+${relativeToPar}` : `${relativeToPar}`;
@@ -283,9 +285,9 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
       const golferTotal = g.rounds.reduce((rSum, r) => rSum + (r.score || 0), 0);
       return sum + golferTotal;
     }, 0);
-    // totalPar would be: golfers.length * 4 * PAR_PER_ROUND (4 rounds per golfer)
+    // totalPar would be: golfers.length * 4 * parPerRound (4 rounds per golfer)
     const roundsPlayed = golfers.reduce((sum, g) => sum + g.rounds.length, 0);
-    const actualPar = roundsPlayed * PAR_PER_ROUND;
+    const actualPar = roundsPlayed * parPerRound;
     const relativeToPar = totalStrokes - actualPar;
     if (roundsPlayed === 0) return '--';
     if (relativeToPar === 0) return 'E';
@@ -315,7 +317,7 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
     if (completedRounds.length < 2) return false; // Need at least 2 rounds to apply cut
 
     const totalStrokes = completedRounds.reduce((sum, r) => sum + r.score, 0);
-    const parForRounds = completedRounds.length * PAR_PER_ROUND;
+    const parForRounds = completedRounds.length * parPerRound;
     const golferToPar = totalStrokes - parForRounds;
 
     const cutLine = parseCutLineScore(tournament.cut_line.score);
@@ -416,8 +418,8 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament }) => {
                     {[1, 2, 3, 4].map(roundNum => {
                       const round = golfer.rounds.find(r => r.round === roundNum);
                       const scoreStr = round ? formatScoreToPar(round.score) : '--';
-                      const isUnderPar = round && (round.score - PAR_PER_ROUND) < 0;
-                      const isOverPar = round && (round.score - PAR_PER_ROUND) > 0;
+                      const isUnderPar = round && (round.score - parPerRound) < 0;
+                      const isOverPar = round && (round.score - parPerRound) > 0;
                       const isCurrentRound = roundNum === currentRound;
                       const thru = round?.thru ? formatThru(round.thru) : null;
                       // Only show thru for current round, active golfers (not cut/wd/projected cut)
