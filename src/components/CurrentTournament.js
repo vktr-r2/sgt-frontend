@@ -167,56 +167,11 @@ const ActiveTournament = ({ scores }) => {
 
   return (
     <div className="space-y-6">
-      <TournamentHeader tournament={tournament} userPosition={userLeaderboard?.current_position} />
       {/* Tournament leaderboard - centered at 75% width */}
       <div className="flex justify-center">
         <div className="w-full max-w-5xl" style={{ width: '75%', minWidth: '320px' }}>
           <TournamentLeaderboard leaderboard={leaderboard} currentUserId={currentUserId} tournament={tournament} />
         </div>
-      </div>
-    </div>
-  );
-};
-
-// Tournament Header component (placeholder)
-const TournamentHeader = ({ tournament, userPosition }) => {
-  if (!tournament) return null;
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  return (
-    <div className="bg-white rounded-xl shadow-country-club p-6 mb-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className="font-display text-3xl text-clubhouse-mahogany">
-              {tournament.name}
-            </h2>
-            {tournament.is_major && (
-              <div className="px-3 py-1 bg-trophy-gold rounded-full">
-                <span className="font-sans font-bold text-white text-sm">MAJOR</span>
-              </div>
-            )}
-          </div>
-          {tournament.start_date && tournament.end_date && (
-            <p className="font-sans text-clubhouse-brown mt-1">
-              {formatDate(tournament.start_date)} - {formatDate(tournament.end_date)}
-            </p>
-          )}
-        </div>
-        {userPosition && (
-          <div className="text-right">
-            <p className="font-sans text-sm text-clubhouse-brown mb-1">Your Position</p>
-            <div className="w-16 h-16 rounded-full bg-augusta-green-600 flex items-center justify-center">
-              <span className="font-display text-2xl text-white">{userPosition}</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
