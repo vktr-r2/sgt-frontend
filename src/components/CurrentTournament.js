@@ -163,7 +163,6 @@ const ActiveTournament = ({ scores }) => {
   };
 
   const currentUserId = getCurrentUserId();
-  const userLeaderboard = leaderboard.find(entry => entry.user_id === currentUserId) || leaderboard[0];
 
   return (
     <div className="space-y-6">
