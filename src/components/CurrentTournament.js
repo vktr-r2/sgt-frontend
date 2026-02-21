@@ -180,6 +180,8 @@ const ActiveTournament = ({ scores }) => {
 
 // Tournament Header component (placeholder)
 const TournamentHeader = ({ tournament, userPosition }) => {
+  if (!tournament) return null;
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',

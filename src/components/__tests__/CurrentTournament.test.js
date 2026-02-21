@@ -63,7 +63,8 @@ describe('CurrentTournament', () => {
           name: 'The Masters',
           draft_window: {
             start: '2026-04-05T00:00:00Z',
-            end: '2026-04-07T23:59:59Z'
+            end: '2026-04-07T23:59:59Z',
+            status: 'after_window'
           }
         }
       };
@@ -92,7 +93,9 @@ describe('CurrentTournament', () => {
       render(<CurrentTournament />, { wrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('The Masters')).toBeInTheDocument();
+        // Multiple elements show the tournament name
+        const mastersElements = screen.getAllByText('The Masters');
+        expect(mastersElements.length).toBeGreaterThan(0);
       });
 
       jest.spyOn(Date, 'now').mockRestore();
@@ -138,14 +141,13 @@ describe('CurrentTournament', () => {
           name: 'The Masters',
           draft_window: {
             start: '2026-04-05T00:00:00Z',
-            end: '2026-04-10T23:59:59Z'
+            end: '2026-04-10T23:59:59Z',
+            status: 'open'
           }
         }
       };
 
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
-
-      jest.spyOn(Date, 'now').mockImplementation(() => new Date('2026-04-08T12:00:00Z').getTime());
 
       render(<CurrentTournament />, { wrapper });
 
@@ -164,7 +166,8 @@ describe('CurrentTournament', () => {
         name: 'The Masters',
         draft_window: {
           start: '2026-04-05T00:00:00Z',
-          end: '2026-04-07T23:59:59Z'
+          end: '2026-04-07T23:59:59Z',
+          status: 'after_window'
         }
       }
     };
@@ -206,7 +209,9 @@ describe('CurrentTournament', () => {
       render(<CurrentTournament />, { wrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('The Masters')).toBeInTheDocument();
+        // Multiple elements show the tournament name
+        const mastersElements = screen.getAllByText('The Masters');
+        expect(mastersElements.length).toBeGreaterThan(0);
         expect(screen.getByText('MAJOR')).toBeInTheDocument();
       });
     });
@@ -405,7 +410,8 @@ describe('CurrentTournament', () => {
         name: 'The Masters',
         draft_window: {
           start: '2026-04-05T00:00:00Z',
-          end: '2026-04-10T23:59:59Z'
+          end: '2026-04-10T23:59:59Z',
+          status: 'open'
         }
       }
     };
@@ -464,7 +470,8 @@ describe('CurrentTournament', () => {
           name: 'The Masters',
           draft_window: {
             start: '2026-04-05T00:00:00Z',
-            end: '2026-04-07T23:59:59Z'
+            end: '2026-04-07T23:59:59Z',
+            status: 'after_window'
           }
         }
       };
@@ -521,7 +528,8 @@ describe('CurrentTournament', () => {
           name: 'The Masters',
           draft_window: {
             start: '2026-04-05T00:00:00Z',
-            end: '2026-04-07T23:59:59Z'
+            end: '2026-04-07T23:59:59Z',
+            status: 'after_window'
           }
         }
       };
@@ -542,7 +550,9 @@ describe('CurrentTournament', () => {
       render(<CurrentTournament />, { wrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('The Masters')).toBeInTheDocument();
+        // Multiple elements show the tournament name
+        const mastersElements = screen.getAllByText('The Masters');
+        expect(mastersElements.length).toBeGreaterThan(0);
       });
 
       jest.spyOn(Date, 'now').mockRestore();
@@ -555,7 +565,8 @@ describe('CurrentTournament', () => {
           name: 'The Masters',
           draft_window: {
             start: '2026-04-05T00:00:00Z',
-            end: '2026-04-07T23:59:59Z'
+            end: '2026-04-07T23:59:59Z',
+            status: 'after_window'
           }
         }
       };
@@ -655,7 +666,8 @@ describe('CurrentTournament', () => {
         name: 'The Masters',
         draft_window: {
           start: '2026-04-05T00:00:00Z',
-          end: '2026-04-07T23:59:59Z'
+          end: '2026-04-07T23:59:59Z',
+          status: 'after_window'
         }
       }
     };
@@ -707,7 +719,7 @@ describe('CurrentTournament', () => {
         render(<CurrentTournament />, { wrapper });
 
         await waitFor(() => {
-          expect(screen.getByText('Tournament Standings')).toBeInTheDocument();
+          expect(screen.getByText(/Current Tournament:/)).toBeInTheDocument();
           // E should appear in the leaderboard for even par
           const eScores = screen.getAllByText('E');
           expect(eScores.length).toBeGreaterThan(0);
@@ -1083,7 +1095,7 @@ describe('CurrentTournament', () => {
         render(<CurrentTournament />, { wrapper });
 
         await waitFor(() => {
-          expect(screen.getByText('Tournament Standings')).toBeInTheDocument();
+          expect(screen.getByText(/Current Tournament:/)).toBeInTheDocument();
           expect(screen.getByText('Adam')).toBeInTheDocument();
           expect(screen.getByText('Brandon')).toBeInTheDocument();
           expect(screen.getByText('Marco')).toBeInTheDocument();
@@ -1268,7 +1280,7 @@ describe('CurrentTournament', () => {
         render(<CurrentTournament />, { wrapper });
 
         await waitFor(() => {
-          expect(screen.getByText('Tournament Standings')).toBeInTheDocument();
+          expect(screen.getByText(/Current Tournament:/)).toBeInTheDocument();
         });
       });
 
@@ -1295,7 +1307,7 @@ describe('CurrentTournament', () => {
         render(<CurrentTournament />, { wrapper });
 
         await waitFor(() => {
-          expect(screen.getByText('Tournament Standings')).toBeInTheDocument();
+          expect(screen.getByText(/Current Tournament:/)).toBeInTheDocument();
         });
       });
     });
@@ -1308,7 +1320,8 @@ describe('CurrentTournament', () => {
         name: 'The Masters',
         draft_window: {
           start: '2026-04-05T00:00:00Z',
-          end: '2026-04-07T23:59:59Z'
+          end: '2026-04-07T23:59:59Z',
+          status: 'after_window'
         }
       }
     };
