@@ -29,5 +29,15 @@ export const tournamentService = {
   getFullLeaderboard: async () => {
     const response = await api.get('/api/tournaments/current/full_leaderboard');
     return response.data;
+  },
+
+  getTournamentHistory: async (year, page = 1) => {
+    const response = await api.get(`/api/tournaments/history?year=${year}&page=${page}`);
+    return response.data;
+  },
+
+  getTournamentResults: async (id) => {
+    const response = await api.get(`/api/tournaments/${id}/results`);
+    return response.data;
   }
 };

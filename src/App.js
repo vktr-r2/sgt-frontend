@@ -7,6 +7,7 @@ import ResetPassword from './components/ResetPassword';
 import Dashboard from './components/Dashboard';
 import Draft from './components/Draft';
 import Admin from './components/Admin';
+import PastTournaments from './components/PastTournaments';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -48,13 +49,21 @@ function App() {
                   </PrivateRoute>
                 } 
               />
-              <Route 
-                path="/admin" 
+              <Route
+                path="/admin"
                 element={
                   <PrivateRoute>
                     <Admin />
                   </PrivateRoute>
-                } 
+                }
+              />
+              <Route
+                path="/past-tournaments"
+                element={
+                  <PrivateRoute>
+                    <PastTournaments />
+                  </PrivateRoute>
+                }
               />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

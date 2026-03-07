@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
-import CurrentTournament from '../CurrentTournament';
+import Tournament from '../Tournament';
 import { tournamentService } from '../../services/tournament';
 
 jest.mock('../../services/tournament');
@@ -27,7 +27,7 @@ const wrapper = ({ children }) => {
   );
 };
 
-describe('CurrentTournament', () => {
+describe('Tournament', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -41,7 +41,7 @@ describe('CurrentTournament', () => {
     it('should display loading state while fetching data', () => {
       tournamentService.getAppInfo.mockImplementation(() => new Promise(() => {}));
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       expect(screen.getByText(/loading tournament data/i)).toBeInTheDocument();
     });
@@ -49,7 +49,7 @@ describe('CurrentTournament', () => {
     it('should display error state when API call fails', async () => {
       tournamentService.getAppInfo.mockRejectedValue(new Error('API Error'));
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/error loading tournament data/i)).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe('CurrentTournament', () => {
 
       jest.spyOn(Date, 'now').mockImplementation(() => new Date('2026-04-10T12:00:00Z').getTime());
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         // Multiple elements show the tournament name
@@ -127,7 +127,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getSeasonStandings.mockResolvedValue(mockStandings);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/2026 Season Standings/i)).toBeInTheDocument();
@@ -149,7 +149,7 @@ describe('CurrentTournament', () => {
 
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/Draft In Progress/i)).toBeInTheDocument();
@@ -186,7 +186,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getSeasonStandings.mockResolvedValue(mockStandings);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/Season Standings/i)).toBeInTheDocument();
@@ -218,7 +218,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getSeasonStandings.mockResolvedValue(mockStandings);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -263,7 +263,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getSeasonStandings.mockResolvedValue(mockStandings);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText('Current User')).toBeInTheDocument();
@@ -282,7 +282,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getSeasonStandings.mockResolvedValue(mockStandings);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/2026 Season Standings/i)).toBeInTheDocument();
@@ -314,7 +314,7 @@ describe('CurrentTournament', () => {
     it('should display draft in progress message', async () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/Draft In Progress/i)).toBeInTheDocument();
@@ -325,7 +325,7 @@ describe('CurrentTournament', () => {
     it('should display Go to Draft button', async () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /Go to Draft/i })).toBeInTheDocument();
@@ -335,7 +335,7 @@ describe('CurrentTournament', () => {
     it('should navigate to draft page when button is clicked', async () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /Go to Draft/i })).toBeInTheDocument();
@@ -376,7 +376,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(tournamentService.getCurrentScores).toHaveBeenCalled();
@@ -401,7 +401,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getSeasonStandings.mockResolvedValue(mockStandings);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(tournamentService.getSeasonStandings).toHaveBeenCalledWith(2026);
@@ -434,7 +434,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         // Multiple elements show the tournament name
@@ -463,7 +463,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getCurrentScores.mockRejectedValue(new Error('Network error'));
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/error loading tournament data/i)).toBeInTheDocument();
@@ -501,7 +501,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getSeasonStandings.mockResolvedValue(mockStandings);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(tournamentService.getSeasonStandings).toHaveBeenCalled();
@@ -516,7 +516,7 @@ describe('CurrentTournament', () => {
     it('should handle network errors gracefully', async () => {
       tournamentService.getAppInfo.mockRejectedValue(new Error('Network error'));
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/error loading tournament data/i)).toBeInTheDocument();
@@ -528,7 +528,7 @@ describe('CurrentTournament', () => {
       error.response = { status: 404 };
       tournamentService.getAppInfo.mockRejectedValue(error);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/error loading tournament data/i)).toBeInTheDocument();
@@ -538,7 +538,7 @@ describe('CurrentTournament', () => {
     it('should display retry button on error', async () => {
       tournamentService.getAppInfo.mockRejectedValue(new Error('API Error'));
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
@@ -603,7 +603,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           expect(screen.getByText(/Current Tournament:/)).toBeInTheDocument();
@@ -643,7 +643,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           // -4 should appear (68 - 72 = -4)
@@ -682,7 +682,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           // +4 should appear (76 - 72 = +4)
@@ -721,7 +721,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           // Should show "--" for rounds 2, 3, 4
@@ -777,7 +777,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           // Total: (70+68+71+71) - (72*4) = 280 - 288 = -8
@@ -821,7 +821,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           expect(screen.getByText('✂️')).toBeInTheDocument();
@@ -858,7 +858,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           expect(screen.getByText('🚫')).toBeInTheDocument();
@@ -916,7 +916,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           // Both users should be displayed in the leaderboard
@@ -979,7 +979,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           expect(screen.getByText(/Current Tournament:/)).toBeInTheDocument();
@@ -1021,7 +1021,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           // Position 1 and 2 should be displayed
@@ -1053,7 +1053,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           // Both golfers should appear in leaderboard
@@ -1096,7 +1096,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           // Find the -4 score in the leaderboard table
@@ -1138,7 +1138,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           // Find the +4 score in the leaderboard table
@@ -1164,7 +1164,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           expect(screen.getByText(/Current Tournament:/)).toBeInTheDocument();
@@ -1191,7 +1191,7 @@ describe('CurrentTournament', () => {
         tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
         tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-        render(<CurrentTournament />, { wrapper });
+        render(<Tournament />, { wrapper });
 
         await waitFor(() => {
           expect(screen.getByText(/Current Tournament:/)).toBeInTheDocument();
@@ -1254,7 +1254,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/Tiger Woods/)).toBeInTheDocument();
@@ -1295,7 +1295,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/Rory McIlroy/)).toBeInTheDocument();
@@ -1336,7 +1336,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText(/Phil Mickelson/)).toBeInTheDocument();
@@ -1378,7 +1378,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         // 68 + 70 = 138 strokes, par is 144 (72 * 2), so -6
@@ -1418,7 +1418,7 @@ describe('CurrentTournament', () => {
       tournamentService.getAppInfo.mockResolvedValue(mockAppInfo);
       tournamentService.getCurrentScores.mockResolvedValue(mockScores);
 
-      render(<CurrentTournament />, { wrapper });
+      render(<Tournament />, { wrapper });
 
       await waitFor(() => {
         expect(screen.getByText('Team')).toBeInTheDocument();
