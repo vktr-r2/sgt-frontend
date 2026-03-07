@@ -1,12 +1,13 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/auth';
-import CurrentTournament from './CurrentTournament';
+import Tournament from './Tournament';
 import FullLeaderboard from './FullLeaderboard';
 import CurrentSeason from './CurrentSeason';
 
 function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = authService.getCurrentUser();
 
   const handleLogout = async () => {
@@ -16,7 +17,7 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-clubhouse-cream">
-      {/* Header bar (match Draft.js) */}
+      {/* Header bar */}
       <div className="bg-white shadow-country-club sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <h2 className="font-display text-3xl text-clubhouse-mahogany">
@@ -41,11 +42,35 @@ function Dashboard() {
             </button>
           </div>
         </div>
+
+        {/* Navigation tabs */}
+        <div className="border-t border-clubhouse-beige">
+          <div className="max-w-7xl mx-auto px-6 flex">
+            <button
+              onClick={() => navigate('/')}
+              className={`font-sans font-medium px-4 py-3 text-sm border-b-2 transition-colors
+                ${location.pathname === '/'
+                  ? 'border-augusta-green-600 text-augusta-green-600'
+                  : 'border-transparent text-clubhouse-brown hover:text-clubhouse-mahogany'}`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => navigate('/past-tournaments')}
+              className={`font-sans font-medium px-4 py-3 text-sm border-b-2 transition-colors
+                ${location.pathname === '/past-tournaments'
+                  ? 'border-augusta-green-600 text-augusta-green-600'
+                  : 'border-transparent text-clubhouse-brown hover:text-clubhouse-mahogany'}`}
+            >
+              Past Tournaments
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        <CurrentTournament />
+        <Tournament />
         <FullLeaderboard />
         <CurrentSeason />
       </div>
