@@ -214,16 +214,16 @@ function Draft() {
 
             {/* Draft Restored Notification */}
             {draftRestored && (
-              <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4 mb-6 flex items-center justify-between animate-slide-up">
+              <div className="bg-augusta-green-50 border-l-4 border-augusta-green-600 rounded-lg p-4 mb-6 flex items-center justify-between animate-slide-up">
                 <div className="flex items-center gap-3">
-                  <svg className="w-6 h-6 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-augusta-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="font-sans font-medium text-blue-700">Your previous draft selections have been restored.</p>
+                  <p className="font-sans font-medium text-clubhouse-mahogany">Your previous draft selections have been restored.</p>
                 </div>
                 <button
                   onClick={() => setDraftRestored(false)}
-                  className="text-blue-500 hover:text-blue-700 transition-colors"
+                  className="text-augusta-green-600 hover:text-augusta-green-700 transition-colors"
                   aria-label="Dismiss notification"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

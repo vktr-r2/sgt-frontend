@@ -31,12 +31,6 @@ module.exports = {
           DEFAULT: '#D2B48C',
           dark: '#BC9A6B',
         },
-        // Sky/water tones
-        'golf-blue': {
-          light: '#B0C4DE',
-          DEFAULT: '#4682B4',
-          dark: '#36648B',
-        },
         // Earth/clubhouse tones
         'clubhouse': {
           cream: '#FAF8F3',
