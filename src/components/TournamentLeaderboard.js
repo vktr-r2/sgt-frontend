@@ -84,9 +84,14 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament, mode = 
     const completedRounds = golfer.rounds ? golfer.rounds.filter(r => r.score) : [];
     if (completedRounds.length < 2) return false;
 
-    const totalStrokes = completedRounds.reduce((sum, r) => sum + r.score, 0);
-    const parForRounds = completedRounds.length * parPerRound;
-    const golferToPar = totalStrokes - parForRounds;
+    // Cut eligibility is determined only by rounds 1 and 2 — never use R3/R4 scores
+    const round1 = golfer.rounds.find(r => r.round === 1);
+    const round2 = golfer.rounds.find(r => r.round === 2);
+    if (!round1?.score || !round2?.score) return false;
+
+    const twoRoundStrokes = round1.score + round2.score;
+    const parFor2Rounds = 2 * parPerRound;
+    const golferToPar = twoRoundStrokes - parFor2Rounds;
 
     const cutLine = parseCutLineScore(tournament.cut_line.score);
     if (cutLine === null) return false;
