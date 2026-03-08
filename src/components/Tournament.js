@@ -20,9 +20,29 @@ const Tournament = () => {
     return tournament.draft_window.status; // 'before_window', 'open', 'after_window'
   };
 
+  const recentlyCompleted = appInfo?.recently_completed_tournament ?? null;
+  const shouldFetchFinalResults = Boolean(recentlyCompleted?.id && !appInfo?.current_tournament);
+
   // Determine if we should fetch scores or standings based on appInfo
   const shouldFetchScores = Boolean(appInfo && appInfo.current_tournament && getDraftStatus(appInfo.current_tournament) === 'after_window');
-  const shouldFetchStandings = Boolean(appInfo && !appInfo.current_tournament);
+  const shouldFetchStandings = Boolean(
+    appInfo &&
+    !appInfo.current_tournament &&
+    !appInfo.recently_completed_tournament
+  );
+
+  // Get final results for transition period (recently completed tournament)
+  const {
+    data: finalResults,
+    isLoading: isLoadingFinalResults,
+    error: finalResultsError,
+    refetch: refetchFinalResults
+  } = useQuery({
+    queryKey: ['tournamentResults', recentlyCompleted?.id],
+    queryFn: () => tournamentService.getTournamentResults(recentlyCompleted.id),
+    enabled: shouldFetchFinalResults,
+    staleTime: Infinity // Final results never change
+  });
 
   // Get current scores (only after draft closes)
   const {
@@ -59,6 +79,13 @@ const Tournament = () => {
 
     // Now we have appInfo, determine what to show
     if (!appInfo?.current_tournament) {
+      // Transition: no current tournament but recently completed one exists
+      if (appInfo?.recently_completed_tournament) {
+        if (isLoadingFinalResults) return 'loading';
+        if (finalResultsError) return 'error';
+        return 'post-tournament';
+      }
+
       // Off-season: check if standings are loading or errored
       if (isLoadingStandings) return 'loading';
       if (standingsError) return 'error';
@@ -99,7 +126,8 @@ const Tournament = () => {
   // Error state
   if (displayMode === 'error') {
     // eslint-disable-next-line no-unused-vars
-    const error = appInfoError || scoresError || standingsError;
+    const error = appInfoError || scoresError || standingsError || finalResultsError;
+    const refetch = finalResultsError ? refetchFinalResults : refetchScores;
     return (
       <div className="bg-red-50 border-l-4 border-error-red rounded-lg p-6 max-w-md mx-auto animate-fade-in">
         <div className="flex items-start gap-3">
@@ -109,7 +137,7 @@ const Tournament = () => {
           <div className="flex-grow">
             <p className="font-sans text-error-red font-medium mb-2">Error loading tournament data</p>
             <button
-              onClick={() => refetchScores()}
+              onClick={() => refetch()}
               className="font-sans text-sm text-error-red underline hover:no-underline"
             >
               Try again
@@ -135,12 +163,76 @@ const Tournament = () => {
     return <OffSeasonStandings standings={standings} currentYear={currentYear} />;
   }
 
+  // Post-tournament transition state
+  if (displayMode === 'post-tournament') {
+    return (
+      <PostTournamentView
+        finalResults={finalResults}
+        tournament={recentlyCompleted}
+        refetch={refetchFinalResults}
+      />
+    );
+  }
+
   // Active tournament state
   if (displayMode === 'active-tournament') {
     return <ActiveTournament scores={scores} />;
   }
 
   return null;
+};
+
+// Post-Tournament transition component
+const PostTournamentView = ({ finalResults, tournament, refetch }) => {
+  if (!finalResults?.data) return null;
+
+  const { tournament: tournamentData, results } = finalResults.data;
+
+  const getCurrentUserId = () => {
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        return user.user_id;
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+    return null;
+  };
+
+  const currentUserId = getCurrentUserId();
+
+  return (
+    <div className="space-y-4">
+      {/* Transition banner */}
+      <div className="bg-trophy-gold/10 border border-trophy-gold rounded-lg px-4 py-3
+                      flex items-center gap-3 animate-slide-up">
+        <svg className="w-5 h-5 text-trophy-gold flex-shrink-0" fill="none"
+             stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p className="font-sans text-sm text-clubhouse-mahogany">
+          <span className="font-semibold">Tournament complete.</span>{' '}
+          Final results for <span className="font-semibold">{tournament.name}</span>.
+          {' '}The next draft opens Tuesday.
+        </p>
+      </div>
+
+      {/* Final results leaderboard */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-5xl" style={{ width: '75%', minWidth: '320px' }}>
+          <TournamentLeaderboard
+            leaderboard={results}
+            currentUserId={currentUserId}
+            tournament={tournamentData}
+            mode="final"
+          />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 // Active Tournament component

@@ -32,9 +32,10 @@ describe('Tournament', () => {
     jest.clearAllMocks();
 
     // Set up default mocks to prevent undefined returns
-    tournamentService.getAppInfo.mockResolvedValue({ current_tournament: null });
+    tournamentService.getAppInfo.mockResolvedValue({ current_tournament: null, recently_completed_tournament: null });
     tournamentService.getCurrentScores.mockResolvedValue({ success: true, data: { tournament: {}, leaderboard: [] } });
     tournamentService.getSeasonStandings.mockResolvedValue({ success: true, data: { season_year: 2026, standings: [] } });
+    tournamentService.getTournamentResults.mockResolvedValue({ success: true, data: null });
   });
 
   describe('Rendering States', () => {
@@ -286,6 +287,141 @@ describe('Tournament', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/2026 Season Standings/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Post-Tournament Transition', () => {
+    const mockTransitionAppInfo = {
+      current_tournament: null,
+      recently_completed_tournament: {
+        id: 45,
+        name: 'Arnold Palmer Invitational',
+        end_date: '2026-03-09',
+        is_major: false
+      }
+    };
+
+    const mockFinalResults = {
+      success: true,
+      data: {
+        tournament: { id: 45, name: 'Arnold Palmer Invitational', par: 72 },
+        results: [
+          {
+            place: 1,
+            user_id: 1,
+            username: 'Vik',
+            total_points: -4,
+            golfers: [
+              { name: 'Scottie Scheffler', final_position: '1', status: 'complete', total_score: 268, was_replaced: false }
+            ]
+          }
+        ]
+      }
+    };
+
+    beforeEach(() => {
+      tournamentService.getTournamentResults.mockResolvedValue(mockFinalResults);
+    });
+
+    it('should display loading state while final results are fetching', async () => {
+      tournamentService.getAppInfo.mockResolvedValue(mockTransitionAppInfo);
+      tournamentService.getTournamentResults.mockImplementation(() => new Promise(() => {}));
+
+      render(<Tournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText(/loading tournament data/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should display error state when final results fetch fails', async () => {
+      tournamentService.getAppInfo.mockResolvedValue(mockTransitionAppInfo);
+      tournamentService.getTournamentResults.mockRejectedValue(new Error('Results Error'));
+
+      render(<Tournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText(/error loading tournament data/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should display PostTournamentView when recently_completed_tournament is set', async () => {
+      tournamentService.getAppInfo.mockResolvedValue(mockTransitionAppInfo);
+
+      render(<Tournament />, { wrapper });
+
+      await waitFor(() => {
+        // Use exact string to match only the <span> element, not ancestor containers
+        expect(screen.getByText('Tournament complete.')).toBeInTheDocument();
+        // Arnold Palmer appears in both banner and leaderboard header — use queryAllByText
+        expect(screen.queryAllByText('Arnold Palmer Invitational').length).toBeGreaterThan(0);
+      });
+    });
+
+    it('should call getTournamentResults with the correct tournament id', async () => {
+      tournamentService.getAppInfo.mockResolvedValue(mockTransitionAppInfo);
+
+      render(<Tournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(tournamentService.getTournamentResults).toHaveBeenCalledWith(45);
+      });
+    });
+
+    it('should NOT call getSeasonStandings during transition', async () => {
+      tournamentService.getAppInfo.mockResolvedValue(mockTransitionAppInfo);
+
+      render(<Tournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Tournament complete/i)).toBeInTheDocument();
+      });
+
+      expect(tournamentService.getSeasonStandings).not.toHaveBeenCalled();
+    });
+
+    it('should display transition banner with tournament name', async () => {
+      tournamentService.getAppInfo.mockResolvedValue(mockTransitionAppInfo);
+
+      render(<Tournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Final results for/i)).toBeInTheDocument();
+        expect(screen.getByText(/The next draft opens Tuesday/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should render TournamentLeaderboard in final mode', async () => {
+      tournamentService.getAppInfo.mockResolvedValue(mockTransitionAppInfo);
+
+      render(<Tournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Final')).toBeInTheDocument();
+        expect(screen.getByText('Pts')).toBeInTheDocument();
+      });
+    });
+
+    it('should NOT show PostTournamentView when current_tournament exists', async () => {
+      tournamentService.getAppInfo.mockResolvedValue({
+        current_tournament: {
+          id: 1,
+          name: 'The Masters',
+          draft_window: { start: '2026-04-05T00:00:00Z', end: '2026-04-07T23:59:59Z', status: 'after_window' }
+        },
+        recently_completed_tournament: {
+          id: 45,
+          name: 'Arnold Palmer Invitational',
+          end_date: '2026-03-09',
+          is_major: false
+        }
+      });
+
+      render(<Tournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Tournament complete/i)).not.toBeInTheDocument();
       });
     });
   });
