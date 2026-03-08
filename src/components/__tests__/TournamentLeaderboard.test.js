@@ -191,6 +191,27 @@ describe('TournamentLeaderboard', () => {
       expect(screen.getByText('Team')).toBeInTheDocument();
       expect(screen.getByText('Tot')).toBeInTheDocument();
     });
+
+    it('should NOT flag golfer as cut if they made the cut after R1+R2 but had a bad R3', () => {
+      const leaderboard = [{
+        user_id: 1, username: 'John', current_position: 1,
+        golfers: [{ golfer_id: 1, name: 'Golfer', position: 'T10', status: 'active',
+          rounds: [
+            { round: 1, score: 70, thru: 'F' },
+            { round: 2, score: 71, thru: 'F' },
+            { round: 3, score: 78, thru: 'F' }
+          ], was_replaced: false }]
+      }];
+      const tournamentWithCut = {
+        ...mockTournament,
+        current_round: 3,
+        cut_line: { score: '+2', count: 70 }
+      };
+      render(
+        <TournamentLeaderboard leaderboard={leaderboard} currentUserId={null} tournament={tournamentWithCut} />
+      );
+      expect(screen.queryByText('✂️')).not.toBeInTheDocument();
+    });
   });
 
   describe('Final Mode', () => {
