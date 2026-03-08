@@ -83,6 +83,10 @@ describe('PastTournaments', () => {
       data: { tournaments: mockTournaments }
     });
     tournamentService.getTournamentResults.mockResolvedValue(mockResults);
+    tournamentService.getAppInfo.mockResolvedValue({
+      current_tournament: null,
+      recently_completed_tournament: null
+    });
   });
 
   describe('Rendering States', () => {
@@ -318,10 +322,44 @@ describe('PastTournaments', () => {
       await waitFor(() => {
         expect(screen.getAllByText('The Masters').length).toBeGreaterThan(0);
       });
-      expect(tournamentService.getTournamentHistory).toHaveBeenCalledWith(new Date().getFullYear());
+      expect(tournamentService.getTournamentHistory).toHaveBeenCalledWith(new Date().getFullYear(), 1, null);
       await userEvent.click(screen.getByRole('button', { name: /The Masters/ }));
       await waitFor(() => {
         expect(tournamentService.getTournamentResults).toHaveBeenCalledWith(1);
+      });
+    });
+
+    it('should pass exclude_id to getTournamentHistory when recently_completed_tournament exists', async () => {
+      tournamentService.getAppInfo.mockResolvedValue({
+        current_tournament: null,
+        recently_completed_tournament: { id: 99, name: 'Arnold Palmer Invitational', end_date: '2026-03-09', is_major: false }
+      });
+
+      render(<PastTournaments />, { wrapper: makeWrapper() });
+
+      await waitFor(() => {
+        expect(tournamentService.getTournamentHistory).toHaveBeenCalledWith(
+          new Date().getFullYear(),
+          1,
+          99
+        );
+      });
+    });
+
+    it('should pass null exclude_id when recently_completed_tournament is null', async () => {
+      tournamentService.getAppInfo.mockResolvedValue({
+        current_tournament: null,
+        recently_completed_tournament: null
+      });
+
+      render(<PastTournaments />, { wrapper: makeWrapper() });
+
+      await waitFor(() => {
+        expect(tournamentService.getTournamentHistory).toHaveBeenCalledWith(
+          new Date().getFullYear(),
+          1,
+          null
+        );
       });
     });
   });
