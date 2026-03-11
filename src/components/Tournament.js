@@ -203,22 +203,37 @@ const PostTournamentView = ({ finalResults, tournament, refetch }) => {
 
   const currentUserId = getCurrentUserId();
 
+  const transitionBanner = (
+    <div className="bg-trophy-gold/10 border border-trophy-gold rounded-lg px-4 py-3
+                    flex items-center gap-3 animate-slide-up">
+      <svg className="w-5 h-5 text-trophy-gold flex-shrink-0" fill="none"
+           stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p className="font-sans text-sm text-clubhouse-mahogany">
+        <span className="font-semibold">Tournament complete.</span>{' '}
+        Final results for <span className="font-semibold">{tournament.name}</span>.
+        {' '}The next draft opens Tuesday.
+      </p>
+    </div>
+  );
+
+  if (!results || results.length === 0) {
+    return (
+      <div className="space-y-4">
+        {transitionBanner}
+        <p className="font-sans text-clubhouse-brown text-sm text-center py-4">
+          Results are being calculated. Check back shortly.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Transition banner */}
-      <div className="bg-trophy-gold/10 border border-trophy-gold rounded-lg px-4 py-3
-                      flex items-center gap-3 animate-slide-up">
-        <svg className="w-5 h-5 text-trophy-gold flex-shrink-0" fill="none"
-             stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <p className="font-sans text-sm text-clubhouse-mahogany">
-          <span className="font-semibold">Tournament complete.</span>{' '}
-          Final results for <span className="font-semibold">{tournament.name}</span>.
-          {' '}The next draft opens Tuesday.
-        </p>
-      </div>
+      {transitionBanner}
 
       {/* Final results leaderboard */}
       <div className="flex justify-center">

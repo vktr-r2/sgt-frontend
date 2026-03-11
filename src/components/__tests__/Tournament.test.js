@@ -403,6 +403,24 @@ describe('Tournament', () => {
       });
     });
 
+    it('should show calculating message when results array is empty', async () => {
+      tournamentService.getAppInfo.mockResolvedValue(mockTransitionAppInfo);
+      tournamentService.getTournamentResults.mockResolvedValue({
+        success: true,
+        data: {
+          tournament: { id: 45, name: 'Arnold Palmer Invitational', par: 72 },
+          results: []
+        }
+      });
+
+      render(<Tournament />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Results are being calculated/i)).toBeInTheDocument();
+        expect(screen.getByText('Tournament complete.')).toBeInTheDocument();
+      });
+    });
+
     it('should NOT show PostTournamentView when current_tournament exists', async () => {
       tournamentService.getAppInfo.mockResolvedValue({
         current_tournament: {

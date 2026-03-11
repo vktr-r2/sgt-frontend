@@ -51,6 +51,14 @@ const TournamentResultsPanel = ({ tournamentId }) => {
 
   const { tournament, results } = resultsData.data;
 
+  if (!results || results.length === 0) {
+    return (
+      <p className="font-sans text-clubhouse-brown text-sm px-4 py-4">
+        Results are not yet available for this tournament.
+      </p>
+    );
+  }
+
   return (
     <div className="p-4">
       <TournamentLeaderboard
@@ -90,7 +98,7 @@ const TournamentListItem = ({ tournament, isExpanded, onToggle }) => {
         )}
         {tournament.winner_username && (
           <span className="font-sans text-sm text-clubhouse-brown">
-            Winner: {tournament.winner_username} ({tournament.winner_points})
+            Winner: {tournament.winner_username} ({tournament.winning_score} pts)
           </span>
         )}
       </button>

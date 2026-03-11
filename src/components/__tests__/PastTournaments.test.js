@@ -35,7 +35,7 @@ const mockTournaments = [
     end_date: '2026-04-13',
     is_major: true,
     winner_username: 'Vik',
-    winner_points: -4
+    winning_score: -4
   },
   {
     id: 2,
@@ -44,7 +44,7 @@ const mockTournaments = [
     end_date: '2026-03-06',
     is_major: false,
     winner_username: 'Joe',
-    winner_points: -3
+    winning_score: -3
   }
 ];
 
@@ -223,6 +223,24 @@ describe('PastTournaments', () => {
       await userEvent.click(screen.getByText('The Masters'));
       await waitFor(() => {
         expect(screen.getByText('Scottie Scheffler')).toBeInTheDocument();
+      });
+    });
+
+    it('should show not available message when results array is empty', async () => {
+      tournamentService.getTournamentResults.mockResolvedValue({
+        success: true,
+        data: {
+          tournament: { id: 1, name: 'The Masters', par: 72 },
+          results: []
+        }
+      });
+      render(<PastTournaments />, { wrapper: makeWrapper() });
+      await waitFor(() => {
+        expect(screen.getByText('The Masters')).toBeInTheDocument();
+      });
+      await userEvent.click(screen.getByText('The Masters'));
+      await waitFor(() => {
+        expect(screen.getByText(/Results are not yet available/i)).toBeInTheDocument();
       });
     });
 
