@@ -59,7 +59,19 @@ const mockResults = {
         username: 'Vik',
         total_points: -4,
         golfers: [
-          { name: 'Scottie Scheffler', final_position: '1', status: 'active', total_score: 268, was_replaced: false }
+          {
+            name: 'Scottie Scheffler',
+            final_position: '1',
+            status: 'active',
+            total_score: 268,
+            was_replaced: false,
+            rounds: [
+              { round: 1, score: 66 },
+              { round: 2, score: 67 },
+              { round: 3, score: 68 },
+              { round: 4, score: 67 }
+            ]
+          }
         ]
       },
       {
@@ -68,7 +80,19 @@ const mockResults = {
         username: 'Joe',
         total_points: -3,
         golfers: [
-          { name: 'Rory McIlroy', final_position: 'T5', status: 'active', total_score: 272, was_replaced: false }
+          {
+            name: 'Rory McIlroy',
+            final_position: 'T5',
+            status: 'active',
+            total_score: 272,
+            was_replaced: false,
+            rounds: [
+              { round: 1, score: 67 },
+              { round: 2, score: 68 },
+              { round: 3, score: 69 },
+              { round: 4, score: 68 }
+            ]
+          }
         ]
       }
     ]
@@ -280,15 +304,17 @@ describe('PastTournaments', () => {
   });
 
   describe('Final Leaderboard', () => {
-    it('should render TournamentLeaderboard in final mode', async () => {
+    it('should render TournamentLeaderboard in final mode with expanded columns', async () => {
       render(<PastTournaments />, { wrapper: makeWrapper() });
       await waitFor(() => {
         expect(screen.getByText('The Masters')).toBeInTheDocument();
       });
       await userEvent.click(screen.getByText('The Masters'));
       await waitFor(() => {
-        expect(screen.getByText('Final')).toBeInTheDocument();
-        expect(screen.getByText('Pts')).toBeInTheDocument();
+        expect(screen.getByText('Score')).toBeInTheDocument();
+        expect(screen.getByText('Strokes')).toBeInTheDocument();
+        expect(screen.getByText('Tourn')).toBeInTheDocument();
+        expect(screen.getByText('Season')).toBeInTheDocument();
       });
     });
 

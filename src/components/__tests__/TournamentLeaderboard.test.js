@@ -43,7 +43,13 @@ const mockFinalLeaderboard = [
         final_position: '1',
         status: 'active',
         total_score: 272,
-        was_replaced: false
+        was_replaced: false,
+        rounds: [
+          { round: 1, score: 67 },
+          { round: 2, score: 68 },
+          { round: 3, score: 69 },
+          { round: 4, score: 68 }
+        ]
       }
     ]
   }
@@ -215,7 +221,7 @@ describe('TournamentLeaderboard', () => {
   });
 
   describe('Final Mode', () => {
-    it('should render Final and Pts columns instead of round columns', () => {
+    it('should render R1-R4, Score, Strokes, Tourn, Season columns instead of Final/Pts', () => {
       render(
         <TournamentLeaderboard
           leaderboard={mockFinalLeaderboard}
@@ -224,13 +230,34 @@ describe('TournamentLeaderboard', () => {
           mode="final"
         />
       );
-      expect(screen.getByText('Final')).toBeInTheDocument();
-      expect(screen.getByText('Pts')).toBeInTheDocument();
-      expect(screen.queryByText('R1')).not.toBeInTheDocument();
-      expect(screen.queryByText('R2')).not.toBeInTheDocument();
+      expect(screen.getAllByText('R1').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('R2').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('R3').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('R4').length).toBeGreaterThan(0);
+      expect(screen.getByText('Score')).toBeInTheDocument();
+      expect(screen.getByText('Strokes')).toBeInTheDocument();
+      expect(screen.getByText('Tourn')).toBeInTheDocument();
+      expect(screen.getByText('Season')).toBeInTheDocument();
+      expect(screen.queryByText('Final')).not.toBeInTheDocument();
+      expect(screen.queryByText('Pts')).not.toBeInTheDocument();
     });
 
-    it('should display raw strokes in Final column', () => {
+    it('should display per-round raw stroke scores', () => {
+      render(
+        <TournamentLeaderboard
+          leaderboard={mockFinalLeaderboard}
+          currentUserId={null}
+          tournament={mockTournament}
+          mode="final"
+        />
+      );
+      // mockFinalLeaderboard has rounds: 67, 68, 69, 68
+      expect(screen.getByText('67')).toBeInTheDocument();
+      expect(screen.getAllByText('68').length).toBeGreaterThan(0);
+      expect(screen.getByText('69')).toBeInTheDocument();
+    });
+
+    it('should display raw total strokes in Strokes column', () => {
       render(
         <TournamentLeaderboard
           leaderboard={mockFinalLeaderboard}
@@ -240,6 +267,72 @@ describe('TournamentLeaderboard', () => {
         />
       );
       expect(screen.getByText('272')).toBeInTheDocument();
+    });
+
+    it('should display par-relative Score for golfer', () => {
+      render(
+        <TournamentLeaderboard
+          leaderboard={mockFinalLeaderboard}
+          currentUserId={null}
+          tournament={mockTournament}
+          mode="final"
+        />
+      );
+      // 272 strokes over 4 rounds on par-72 = 272 - 288 = -16
+      expect(screen.getAllByText('-16').length).toBeGreaterThan(0);
+    });
+
+    it('should display Tourn (combined team to-par) for user', () => {
+      render(
+        <TournamentLeaderboard
+          leaderboard={mockFinalLeaderboard}
+          currentUserId={null}
+          tournament={mockTournament}
+          mode="final"
+        />
+      );
+      // Same golfer total appears in both Score and Tourn since there's one golfer
+      expect(screen.getAllByText('-16').length).toBeGreaterThan(0);
+    });
+
+    it('should display Season (SGT points) for user', () => {
+      render(
+        <TournamentLeaderboard
+          leaderboard={mockFinalLeaderboard}
+          currentUserId={null}
+          tournament={mockTournament}
+          mode="final"
+        />
+      );
+      expect(screen.getByText('-4')).toBeInTheDocument();
+    });
+
+    it('should show -- for round columns when golfer has no rounds data', () => {
+      const leaderboardNoRounds = [{
+        place: 1,
+        user_id: 1,
+        username: 'John Doe',
+        total_points: -4,
+        golfers: [{
+          name: 'Tiger Woods',
+          final_position: '1',
+          status: 'active',
+          total_score: 272,
+          was_replaced: false,
+          rounds: []
+        }]
+      }];
+      render(
+        <TournamentLeaderboard
+          leaderboard={leaderboardNoRounds}
+          currentUserId={null}
+          tournament={mockTournament}
+          mode="final"
+        />
+      );
+      const dashes = screen.getAllByText('--');
+      // R1, R2, R3, R4, and Score columns should all show --
+      expect(dashes.length).toBeGreaterThanOrEqual(5);
     });
 
     it('should not display thru indicators in final mode', () => {
@@ -266,7 +359,8 @@ describe('TournamentLeaderboard', () => {
           final_position: '5',
           status: 'active',
           total_score: 280,
-          was_replaced: true
+          was_replaced: true,
+          rounds: []
         }]
       }];
       render(

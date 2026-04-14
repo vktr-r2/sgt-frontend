@@ -313,7 +313,19 @@ describe('Tournament', () => {
             username: 'Vik',
             total_points: -4,
             golfers: [
-              { name: 'Scottie Scheffler', final_position: '1', status: 'complete', total_score: 268, was_replaced: false }
+              {
+                name: 'Scottie Scheffler',
+                final_position: '1',
+                status: 'complete',
+                total_score: 268,
+                was_replaced: false,
+                rounds: [
+                  { round: 1, score: 66 },
+                  { round: 2, score: 67 },
+                  { round: 3, score: 68 },
+                  { round: 4, score: 67 }
+                ]
+              }
             ]
           }
         ]
@@ -392,14 +404,16 @@ describe('Tournament', () => {
       });
     });
 
-    it('should render TournamentLeaderboard in final mode', async () => {
+    it('should render TournamentLeaderboard in final mode with expanded columns', async () => {
       tournamentService.getAppInfo.mockResolvedValue(mockTransitionAppInfo);
 
       render(<Tournament />, { wrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Final')).toBeInTheDocument();
-        expect(screen.getByText('Pts')).toBeInTheDocument();
+        expect(screen.getByText('Score')).toBeInTheDocument();
+        expect(screen.getByText('Strokes')).toBeInTheDocument();
+        expect(screen.getByText('Tourn')).toBeInTheDocument();
+        expect(screen.getByText('Season')).toBeInTheDocument();
       });
     });
 

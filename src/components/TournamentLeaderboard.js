@@ -54,13 +54,13 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament, mode = 
     return relativeToPar > 0 ? `+${relativeToPar}` : `${relativeToPar}`;
   };
 
-  // Calculate total score relative to par for a user (live mode)
+  // Calculate total score relative to par for a user (live and final mode)
   const calculateTotalToPar = (golfers) => {
     const totalStrokes = golfers.reduce((sum, g) => {
-      const golferTotal = g.rounds.reduce((rSum, r) => rSum + (r.score || 0), 0);
+      const golferTotal = (g.rounds || []).reduce((rSum, r) => rSum + (r.score || 0), 0);
       return sum + golferTotal;
     }, 0);
-    const roundsPlayed = golfers.reduce((sum, g) => sum + g.rounds.length, 0);
+    const roundsPlayed = golfers.reduce((sum, g) => sum + (g.rounds || []).length, 0);
     const actualPar = roundsPlayed * parPerRound;
     const relativeToPar = totalStrokes - actualPar;
     if (roundsPlayed === 0) return '--';
@@ -146,8 +146,14 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament, mode = 
                 </>
               ) : (
                 <>
-                  <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">Final</th>
-                  <th className="px-3 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-16 border-l-2 border-clubhouse-brown">Pts</th>
+                  <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R1</th>
+                  <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R2</th>
+                  <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R3</th>
+                  <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany">R4</th>
+                  <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-14">Score</th>
+                  <th className="px-2 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-16">Strokes</th>
+                  <th className="px-3 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-16 border-l-2 border-clubhouse-brown">Tourn</th>
+                  <th className="px-3 py-2 text-center font-sans font-semibold text-clubhouse-mahogany w-16 border-l-2 border-clubhouse-brown">Season</th>
                 </>
               )}
             </tr>
@@ -266,12 +272,51 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament, mode = 
                       </>
                     ) : (
                       <>
-                        {/* Final score (raw strokes) */}
+                        {/* R1–R4 raw strokes per round */}
+                        {[1, 2, 3, 4].map(roundNum => {
+                          const round = (golfer.rounds || []).find(r => r.round === roundNum);
+                          return (
+                            <td
+                              key={roundNum}
+                              className={`px-2 py-1.5 text-center font-sans text-sm text-clubhouse-brown ${statusIndicator ? statusIndicator.color : ''}`}
+                            >
+                              {round ? round.score : '--'}
+                            </td>
+                          );
+                        })}
+
+                        {/* Score: golfer total to par */}
+                        {(() => {
+                          const scoreToPar = calculateGolferTotalToPar(golfer);
+                          const isUnder = scoreToPar.toString().startsWith('-');
+                          const isOver = scoreToPar.toString().startsWith('+');
+                          return (
+                            <td className={`px-2 py-1.5 text-center font-sans text-sm
+                                           ${statusIndicator ? statusIndicator.color : ''}
+                                           ${isUnder ? 'text-augusta-green-600 font-semibold' : ''}
+                                           ${isOver ? 'text-error-red' : ''}
+                                           ${!isUnder && !isOver ? 'text-clubhouse-brown' : ''}`}>
+                              {scoreToPar}
+                            </td>
+                          );
+                        })()}
+
+                        {/* Strokes: raw total */}
                         <td className={`px-2 py-1.5 text-center font-sans text-sm text-clubhouse-brown ${statusIndicator ? statusIndicator.color : ''}`}>
                           {golfer.total_score || '--'}
                         </td>
 
-                        {/* SGT points - only on first golfer row */}
+                        {/* Tourn: combined team to-par — only on first golfer row */}
+                        {isFirstGolfer && (
+                          <td
+                            rowSpan={rowCount}
+                            className="px-3 py-2 text-center font-sans text-lg font-bold text-augusta-green-600 align-middle border-l-2 border-clubhouse-brown"
+                          >
+                            {calculateTotalToPar(golfers)}
+                          </td>
+                        )}
+
+                        {/* Season: SGT points — only on first golfer row */}
                         {isFirstGolfer && (
                           <td
                             rowSpan={rowCount}
