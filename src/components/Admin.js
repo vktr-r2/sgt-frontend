@@ -26,7 +26,7 @@ function Admin() {
 
   const { data: tableData, isLoading, error } = useQuery({
     queryKey: ['adminTable', selectedTable, filters],
-    queryFn: () => adminService.getTableData(selectedTable, selectedTable === 'match_picks' ? filters : {}),
+    queryFn: () => adminService.getTableData(selectedTable, ['match_picks', 'scores'].includes(selectedTable) ? filters : {}),
     enabled: !!selectedTable && !!user?.admin
   });
 
@@ -332,6 +332,48 @@ function Admin() {
                 <option value="">All Golfers</option>
                 {tableData.lookups.golfers?.map(g => (
                   <option key={g.id} value={g.id}>{g.name}</option>
+                ))}
+              </select>
+            </label>
+
+            <button onClick={resetFilters} className="reset-btn">
+              Reset Filters
+            </button>
+          </div>
+          {tableData.total_count !== undefined && (
+            <div className="record-count">
+              Showing {tableData.data?.length || 0} records
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Scores Filters */}
+      {selectedTable === 'scores' && tableData?.lookups && (
+        <div className="filters-container">
+          <div className="filters-row">
+            <label>
+              User:
+              <select
+                value={filters.user_id}
+                onChange={(e) => handleFilterChange('user_id', e.target.value)}
+              >
+                <option value="">All Users</option>
+                {tableData.lookups.users?.map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Tournament:
+              <select
+                value={filters.tournament_id}
+                onChange={(e) => handleFilterChange('tournament_id', e.target.value)}
+              >
+                <option value="">All Tournaments</option>
+                {tableData.lookups.tournaments?.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
             </label>
