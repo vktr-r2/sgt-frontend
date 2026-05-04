@@ -366,45 +366,37 @@ describe('PastTournaments', () => {
       await waitFor(() => {
         expect(screen.getAllByText('The Masters').length).toBeGreaterThan(0);
       });
-      expect(tournamentService.getTournamentHistory).toHaveBeenCalledWith(new Date().getFullYear(), 1, null);
+      expect(tournamentService.getTournamentHistory).toHaveBeenCalledWith(new Date().getFullYear(), 1);
       await userEvent.click(screen.getByRole('button', { name: /The Masters/ }));
       await waitFor(() => {
         expect(tournamentService.getTournamentResults).toHaveBeenCalledWith(1);
       });
     });
 
-    it('should pass exclude_id to getTournamentHistory when recently_completed_tournament exists', async () => {
-      tournamentService.getAppInfo.mockResolvedValue({
-        current_tournament: null,
-        recently_completed_tournament: { id: 99, name: 'Arnold Palmer Invitational', end_date: '2026-03-09', is_major: false }
+    it('includes recently concluded tournament in history (no exclusion)', async () => {
+      const recentlyEnded = {
+        id: 99,
+        name: 'Arnold Palmer Invitational',
+        start_date: '2026-03-06',
+        end_date: '2026-03-09',
+        is_major: false,
+        winner_username: null,
+        winning_score: null
+      };
+      tournamentService.getTournamentHistory.mockResolvedValue({
+        data: { tournaments: [recentlyEnded] }
       });
 
       render(<PastTournaments />, { wrapper: makeWrapper() });
 
       await waitFor(() => {
-        expect(tournamentService.getTournamentHistory).toHaveBeenCalledWith(
-          new Date().getFullYear(),
-          1,
-          99
-        );
+        expect(screen.getByText('Arnold Palmer Invitational')).toBeInTheDocument();
       });
-    });
-
-    it('should pass null exclude_id when recently_completed_tournament is null', async () => {
-      tournamentService.getAppInfo.mockResolvedValue({
-        current_tournament: null,
-        recently_completed_tournament: null
-      });
-
-      render(<PastTournaments />, { wrapper: makeWrapper() });
-
-      await waitFor(() => {
-        expect(tournamentService.getTournamentHistory).toHaveBeenCalledWith(
-          new Date().getFullYear(),
-          1,
-          null
-        );
-      });
+      // No exclude_id passed — recently concluded tournament appears alongside others
+      expect(tournamentService.getTournamentHistory).toHaveBeenCalledWith(
+        new Date().getFullYear(),
+        1
+      );
     });
   });
 });

@@ -114,17 +114,9 @@ const PastTournaments = () => {
   const currentYear = new Date().getFullYear();
   const [expandedTournamentId, setExpandedTournamentId] = useState(null);
 
-  // Read appInfo from React Query cache (no extra network call when Tournament already fetched it)
-  const { data: appInfoData } = useQuery({
-    queryKey: ['appInfo'],
-    queryFn: tournamentService.getAppInfo,
-    staleTime: 5 * 60 * 1000
-  });
-  const transitionId = appInfoData?.recently_completed_tournament?.id ?? null;
-
   const { data: historyData, isLoading, error, refetch } = useQuery({
-    queryKey: ['tournamentHistory', currentYear, transitionId],
-    queryFn: () => tournamentService.getTournamentHistory(currentYear, 1, transitionId),
+    queryKey: ['tournamentHistory', currentYear],
+    queryFn: () => tournamentService.getTournamentHistory(currentYear, 1),
     staleTime: 10 * 60 * 1000 // 10 minutes
   });
 
