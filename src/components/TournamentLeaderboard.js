@@ -5,6 +5,11 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament, mode = 
   const currentRound = tournament?.current_round || 1;
   const isLiveMode = mode === 'live';
 
+  // In final mode, find the golfer who won the actual tournament (final_position === "1")
+  const winnerGolferId = !isLiveMode
+    ? leaderboard.flatMap(u => u.golfers || []).find(g => g.final_position === '1')?.golfer_id ?? null
+    : null;
+
   // Format thru display (e.g., "F" for finished, "9" for in-progress)
   const formatThru = (thru) => {
     if (!thru) return null;
@@ -210,6 +215,9 @@ const TournamentLeaderboard = ({ leaderboard, currentUserId, tournament, mode = 
                             </span>
                           )}
                         </span>
+                        {!isLiveMode && golfer.golfer_id === winnerGolferId && (
+                          <span title="Tournament winner">🥇</span>
+                        )}
                         {!isLiveMode && golfer.was_replaced && (
                           <span className="text-xs text-amber-600 font-semibold" title="Original golfer was replaced">↔</span>
                         )}
