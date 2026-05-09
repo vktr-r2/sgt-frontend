@@ -18,14 +18,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth errors
+// Handle auth errors — only force-logout when the token is expired or missing,
+// not on every 401 (e.g. permission errors on specific endpoints).
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      const expiresAt = localStorage.getItem('tokenExpiresAt');
+      const isExpiredOrMissing = !expiresAt || Date.now() >= parseInt(expiresAt, 10);
+      if (isExpiredOrMissing) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('tokenExpiresAt');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
