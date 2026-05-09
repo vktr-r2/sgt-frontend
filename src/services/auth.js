@@ -7,9 +7,11 @@ export const authService = {
     });
     
     const { user, token } = response.data;
+    const expiresAt = Date.now() + 14 * 24 * 60 * 60 * 1000; // 2 weeks in ms
     localStorage.setItem('authToken', token);
+    localStorage.setItem('tokenExpiresAt', String(expiresAt));
     localStorage.setItem('user', JSON.stringify(user));
-    
+
     return { user, token };
   },
 
@@ -22,9 +24,11 @@ export const authService = {
         name
       }
     });
-    
+
     const { user, token } = response.data;
+    const expiresAt = Date.now() + 14 * 24 * 60 * 60 * 1000;
     localStorage.setItem('authToken', token);
+    localStorage.setItem('tokenExpiresAt', String(expiresAt));
     localStorage.setItem('user', JSON.stringify(user));
     
     return { user, token };
@@ -35,6 +39,7 @@ export const authService = {
       await api.delete('/users/sign_out');
     } finally {
       localStorage.removeItem('authToken');
+      localStorage.removeItem('tokenExpiresAt');
       localStorage.removeItem('user');
     }
   },
@@ -49,7 +54,10 @@ export const authService = {
   },
 
   isAuthenticated: () => {
-    return !!localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken');
+    const expiresAt = localStorage.getItem('tokenExpiresAt');
+    if (!token || !expiresAt) return false;
+    return Date.now() < parseInt(expiresAt, 10);
   },
 
   resetPassword: async (token, password, passwordConfirmation) => {
