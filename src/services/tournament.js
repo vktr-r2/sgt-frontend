@@ -31,9 +31,8 @@ export const tournamentService = {
     return response.data;
   },
 
-  getTournamentHistory: async (year, page = 1, excludeId = null) => {
-    const params = new URLSearchParams({ year, page });
-    if (excludeId) params.append('exclude_id', excludeId);
+  getTournamentHistory: async (year, page = 1) => {
+    const params = new URLSearchParams({ year, page, per_page: 50 });
     const response = await api.get(`/api/tournaments/history?${params.toString()}`);
     return response.data;
   },
